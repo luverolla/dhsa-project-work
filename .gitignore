@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Coherent Dataset Folder ###
+!**/src/main/resources/dataset/
