@@ -1,52 +1,40 @@
 package dhsa.project.dataset;
 
+import ca.uhn.fhir.util.BundleBuilder;
+import dhsa.project.service.FhirWrapper;
+import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
 
-public class AllergiesLoader extends ResourceLoader {
+import java.util.ArrayList;
+import java.util.List;
+
+public class AllergiesLoader implements Loader {
+
+    private final Iterable<CSVRecord> records;
 
     public AllergiesLoader() {
-        super("allergies");
+        records = Helper.parse("allergies");
+        if (records == null) {
+            Helper.logSevere("Failed to load allergies");
+        }
     }
 
     @Override
-    protected Resource createResource(CSVRecord rec) {
-        AllergyIntolerance alin = new AllergyIntolerance();
+    @SneakyThrows
+    public void load() {
+        int count = 0;
+        List<AllergyIntolerance> buffer = new ArrayList<>();
 
-        if (hasProp(rec, "START")) {
-            try {
-                alin.setOnset(DateTimeType.parseV3(rec.get("START")));
-            } catch (Exception e) {
-                return null;
-            }
-        }
+        for (CSVRecord rec : records) {
+            AllergyIntolerance alin = new AllergyIntolerance();
+            alin.setOnset(DateTimeType.parseV3(rec.get("START")));
 
-        if (hasProp(rec, "STOP")) {
-            try {
-                alin.setLastOccurrence(df.parse(rec.get("STOP")));
-            } catch (Exception e) {
-                return null;
-            }
-        }
+            if (Helper.hasProp(rec, "STOP"))
+                alin.setLastOccurrence(Helper.parseDate(rec.get("STOP")));
 
-        if (hasProp(rec, "PATIENT")) {
-            try {
-                alin.setPatient(getPatientRef(rec.get("PATIENT")));
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        if (hasProp(rec, "ENCOUNTER")) {
-            try {
-                alin.setEncounter(getEncounterRef(rec.get("ENCOUNTER")));
-            }
-            catch (Exception e) {
-                return null;
-            }
-        }
-
-        if (hasProp(rec, "CODE")) {
+            alin.setPatient(Helper.resolveUID(Patient.class, rec.get("PATIENT")));
+            alin.setEncounter(Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER")));
             alin.setCode(new CodeableConcept()
                 .addCoding(new Coding()
                     .setSystem("http://snomed.info/sct")
@@ -54,8 +42,22 @@ public class AllergiesLoader extends ResourceLoader {
                     .setDisplay(rec.get("DESCRIPTION"))
                 )
             );
+
+            count++;
+            buffer.add(alin);
+
+            if (count % 100 == 0) {
+                BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
+                buffer.forEach(bb::addTransactionCreateEntry);
+                FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
+
+                if (count % 1000 == 0)
+                    Helper.logInfo("Loaded %d allergies", count);
+
+                buffer.clear();
+            }
         }
 
-        return alin;
+        Helper.logInfo("Loaded ALL allergies");
     }
 }

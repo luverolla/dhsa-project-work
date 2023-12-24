@@ -1,60 +1,66 @@
 package dhsa.project.dataset;
 
+import ca.uhn.fhir.util.BundleBuilder;
+import dhsa.project.service.FhirWrapper;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
 
-public class ConditionsLoader extends ResourceLoader {
+import java.util.ArrayList;
+import java.util.List;
 
-        public ConditionsLoader() {
-                super("conditions");
+public class ConditionsLoader implements Loader {
+
+    private final Iterable<CSVRecord> records;
+
+    public ConditionsLoader() {
+        records = Helper.parse("conditions");
+        if (records == null) {
+            Helper.logSevere("Failed to load conditions");
         }
+    }
 
-        @Override
-        protected Resource createResource(CSVRecord rec) {
+    @Override
+    public void load() {
+        int count = 0;
+        List<Condition> buffer = new ArrayList<>();
+
+        for (CSVRecord rec : records) {
+            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
+            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
+
             Condition cond = new Condition();
 
-            if (hasProp(rec, "START")) {
-                try {
-                    cond.setOnset(DateTimeType.parseV3(rec.get("START")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            cond.setOnset(DateTimeType.parseV3(rec.get("START")));
 
-            if (hasProp(rec, "STOP")) {
-                try {
-                    cond.setAbatement(DateTimeType.parseV3(rec.get("STOP")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            if (Helper.hasProp(rec, "STOP"))
+                cond.setAbatement(DateTimeType.parseV3(rec.get("STOP")));
 
-            if (hasProp(rec, "PATIENT")) {
-                try {
-                    cond.setSubject(getPatientRef(rec.get("PATIENT")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            cond.setSubject(pat);
+            cond.setEncounter(enc);
 
-            if (hasProp(rec, "ENCOUNTER")) {
-                try {
-                    cond.setEncounter(getEncounterRef(rec.get("ENCOUNTER")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            cond.setCode(new CodeableConcept()
+                .addCoding(new Coding()
+                    .setSystem("http://snomed.info/sct")
+                    .setCode(rec.get("CODE"))
+                    .setDisplay(rec.get("DESCRIPTION"))
+                )
+            );
 
-            if (hasProp(rec, "CODE")) {
-                cond.setCode(new CodeableConcept()
-                    .addCoding(new Coding()
-                        .setSystem("http://snomed.info/sct")
-                        .setCode(rec.get("CODE"))
-                        .setDisplay(rec.get("DESCRIPTION"))
-                    )
-                );
-            }
+            count++;
+            buffer.add(cond);
 
-            return cond;
+            if (count % 100 == 0) {
+                BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
+                buffer.forEach(bb::addTransactionCreateEntry);
+                FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
+
+                if (count % 1000 == 0)
+                    Helper.logInfo("Loaded %d conditions".formatted(buffer.size()));
+
+                buffer.clear();
+            }
         }
+
+        Helper.logInfo("Loaded ALL conditions");
+    }
 }

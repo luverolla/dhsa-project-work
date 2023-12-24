@@ -1,55 +1,63 @@
 package dhsa.project.dataset;
 
+import ca.uhn.fhir.util.BundleBuilder;
+import dhsa.project.service.FhirWrapper;
+import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Immunization;
-import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.*;
 
-public class ImmunizationsLoader extends ResourceLoader {
+import java.util.ArrayList;
+import java.util.List;
 
-        public ImmunizationsLoader() {
-                super("immunizations");
+public class ImmunizationsLoader implements Loader {
+
+    private final Iterable<CSVRecord> records;
+
+    public ImmunizationsLoader() {
+        records = Helper.parse("immunizations");
+        if (records == null) {
+            Helper.logSevere("Failed to load immunizations");
         }
+    }
 
-        @Override
-        protected Resource createResource(CSVRecord rec) {
+    @Override
+    @SneakyThrows
+    public void load() {
+        int count = 0;
+        List<Immunization> buffer = new ArrayList<>();
+
+        for (CSVRecord rec : records) {
+            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
+            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
+
             Immunization imm = new Immunization();
 
-            if (hasProp(rec, "DATE")) {
-                try {
-                    imm.setRecorded(df.parse(rec.get("DATE")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            imm.setRecorded(Helper.parseDate(rec.get("DATE")));
+            imm.setPatient(pat);
+            imm.setEncounter(enc);
+            imm.setVaccineCode(new CodeableConcept()
+                .addCoding(new Coding()
+                    .setSystem("http://hl7.org/fhir/sid/cvx")
+                    .setCode(rec.get("CODE"))
+                    .setDisplay(rec.get("DESCRIPTION"))
+                )
+            );
 
-            if (hasProp(rec, "PATIENT")) {
-                try {
-                    imm.setPatient(getPatientRef(rec.get("PATIENT")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            count++;
+            buffer.add(imm);
 
-            if (hasProp(rec, "ENCOUNTER")) {
-                try {
-                    imm.setEncounter(getEncounterRef(rec.get("ENCOUNTER")));
-                } catch (Exception e) {
-                    return null;
-                }
-            }
+            if (count % 100 == 0) {
+                BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
+                buffer.forEach(bb::addTransactionCreateEntry);
+                FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
-            if (hasProp(rec, "CODE")) {
-                imm.setVaccineCode(new CodeableConcept()
-                    .addCoding(new Coding()
-                        .setSystem("http://hl7.org/fhir/sid/cvx")
-                        .setCode(rec.get("CODE"))
-                        .setDisplay(rec.get("DESCRIPTION"))
-                    )
-                );
-            }
+                if (count % 1000 == 0)
+                    Helper.logInfo("Loaded %d immunizations".formatted(buffer.size()));
 
-            return imm;
+                buffer.clear();
+            }
         }
+
+        Helper.logInfo("Loaded ALL immunizations");
+    }
 }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="https://maven.apache.org/pom/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -17,6 +16,12 @@
 		<java.version>17</java.version>
 		<start-class>dhsa.project.Application</start-class>
 	</properties>
+	<repositories>
+		<repository>
+			<url>https://gazelle.ihe.net/nexus/content/repositories/releases/</url>
+			<id>gazelle-releases</id>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -64,7 +69,11 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.4.11</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.pixelmed</groupId>
+			<artifactId>dicom</artifactId>
+			<version>20120929</version>
+		</dependency>
 	</dependencies>
 
 	<build>

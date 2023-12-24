@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient list</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+</head>
+<body class="bg-light">
+    <h1>Patients list</h1>
+
+    <div class="row">
+        <div class="col col-12">
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>SSN</th>
+                            <th>First name</th>
+                            <th>Last name</th>
+                            <th>Birthdate</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="patient, iter : ${patients}">
+                            <td th:text="${iter.index+1}"></td>
+                            <td th:text="${patient.getSSN()}"></td>
+                            <td th:text="${patient.getName()}"></td>
+                            <td th:text="${patient.getSurname()}"></td>
+                            <td th:text="${patient.getBirthDate()}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li th:if="${hasPrev}" class="page-item"><a class="page-link" th:href="'/patients/' + ${page - 1}">Previous</a></li>
+                    <li class="page-item active"><a th:text="${page}" class="page-link" href="#"></a></li>
+                    <li th:if="${hasNext}" class="page-item"><a class="page-link" th:href="'/patients/' + ${page + 1}">Next</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
