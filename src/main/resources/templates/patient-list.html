@@ -1,50 +1,370 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Patient list</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <title>Dashboard</title>
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
 </head>
-<body class="bg-light">
-    <h1>Patients list</h1>
-
+<body>
+<main class="h-100 px-5 py-3 bg-light">
     <div class="row">
-        <div class="col col-12">
+        <h1>Patients</h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Patients
+                </li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 mt-4">
             <div class="card">
                 <div class="card-body">
-                    <table class="table table-striped">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Search
+                    </h5>
+                    <form th:action="@{/web/patients/__${page}__}" th:object="${patientSearch}">
+                        <div class="row mb-2">
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="surname" th:field="*{surname}">
+                                    Surname
+                                </label>
+                                <input class="form-control form-control-sm" id="surname" placeholder="Enter surname"
+                                       th:field="*{surname}" type="text"/>
+                            </div>
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="name" th:field="*{name}">
+                                    Name
+                                </label>
+                                <input
+                                        class="form-control form-control-sm"
+                                        id="name"
+                                        placeholder="Enter surname" th:field="*{name}"
+                                        type="text"/>
+                            </div>
+                            <div class="form-group col col-12 col-md-2">
+                                <label class="small" for="sex" th:field="*{sex}">
+                                    Sex
+                                </label>
+                                <select
+                                        class="form-select form-select-sm" id="sex"
+                                        th:field="*{sex}">
+                                    <option selected value="">
+                                        Any
+                                    </option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="ssnNumber" th:field="*{ssnNumber}">
+                                    SSN number
+                                </label>
+                                <input
+                                        class="form-control form-control-sm" id="ssnNumber"
+                                        placeholder="000-00-0000"
+                                        th:field="*{ssnNumber}"
+                                        type="text"/>
+                            </div>
+                            <div class="form-group col col-12 col-md-3">
+                                <label
+                                        class="small"
+                                        for="driverLicense" th:field="*{driverLicense}">
+                                    Driver license number
+                                </label>
+                                <input
+                                        class="form-control form-control-sm" id="driverLicense"
+                                        placeholder="S00000000"
+                                        th:field="*{driverLicense}"
+                                        type="text"/>
+                            </div>
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="passport" th:field="*{passport}">
+                                    Passport number
+                                </label>
+                                <input
+                                        class="form-control form-control-sm" id="passport"
+                                        placeholder="X00000000X"
+                                        th:field="*{passport}"
+                                        type="text"/>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div
+                                    aria-describedby="birthDateLabel"
+                                    class="form-group col col-12 col-md-4"
+                                    id="birthDateRange">
+                                <label
+                                        class="small"
+                                        id="birthDateLabel">
+                                    Birthdate
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <label
+                                            class="input-group-text"
+                                            for="birthDateFrom" th:field="*{birthDateFrom}">
+                                        From
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm" id="birthDateFrom"
+                                            th:field="*{birthDateFrom}"
+                                            type="date"/>
+                                    <label
+                                            class="input-group-text"
+                                            for="birthDateTo" th:field="*{birthDateTo}">
+                                        To
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm"
+                                            id="birthDateTo" th:field="*{birthDateTo}"
+                                            type="date"/>
+                                </div>
+                            </div>
+                            <div
+                                    class="form-group col col-12 col-md-auto d-flex align-items-end"
+                                    onchange="checkDeadValue()">
+                                <div class="form-check">
+                                    <input
+                                            class="form-check-input"
+                                            id="dead"
+                                            th:field="*{dead}"
+                                            type="checkbox"/>
+                                    <label
+                                            class="form-check-label"
+                                            for="dead" th:field="*{dead}">
+                                        Deceased
+                                    </label>
+                                </div>
+                            </div>
+                            <div
+                                    class="form-group col col-12 col-md-4 d-none"
+                                    id="deadDateRange">
+                                <label class="small">Death date</label>
+                                <div class="input-group input-group-sm">
+                                    <label class="input-group-text" for="deathDateFrom" th:field="*{deathDateFrom}">
+                                        From
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm" id="deathDateFrom"
+                                            placeholder="Enter birthdate"
+                                            th:field="*{deathDateFrom}"
+                                            type="date"/>
+                                    <label class="input-group-text" for="deathDateTo" th:field="*{deathDateTo}">
+                                        To
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm" id="deathDateTo"
+                                            placeholder="Enter birthdate"
+                                            th:field="*{deathDateTo}"
+                                            type="date"/>
+                                </div>
+                            </div>
+                            <!-- /form-group -->
+                        </div>
+                        <!-- /form-row -->
+                        <h5
+                                class="card-title mt-4"
+                                style="font-weight: 600">
+                            Sort
+                        </h5>
+                        <div class="row">
+                            <div class="form-group col col-12 col-md-2">
+                                <label class="small" for="perPage" th:field="*{perPage}">
+                                    Elements per page
+                                </label>
+                                <select
+                                        class="form-select form-select-sm" id="perPage"
+                                        th:field="*{perPage}">
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                    <option value="25">25</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="form-group col col-12 col-md-6">
+                                <label class="small" id="sortLabel">
+                                    Sort
+                                </label>
+                                <div class="d-flex align-items-end">
+                                    <div
+                                            class="w-100 me-1"
+                                            data-sort-items>
+                                        <div
+
+                                                aria-describedby="sortLabel"
+                                                class="input-group input-group-sm">
+                                            <label
+                                                    class="input-group-text"
+                                                    for="sortField" th:field="*{sort.sortField}">
+                                                by field
+                                            </label>
+                                            <select
+                                                    class="form-select form-select-sm"
+                                                    id="sortField"
+                                                    th:field="*{sort.sortField}">
+                                                <option value="family">
+                                                    Surname
+                                                </option>
+                                                <option value="given">
+                                                    Name
+                                                </option>
+                                                <option
+                                                        value="birthdate">
+                                                    Birthdate
+                                                </option>
+                                                <option
+                                                        value="death-date">
+                                                    Death date
+                                                </option>
+                                            </select>
+                                            <label
+                                                    class="input-group-text"
+                                                    for="sortOrder" th:field="*{sort.sortOrder}">
+                                                order
+                                            </label>
+                                            <select
+                                                    class="form-select form-select-sm"
+                                                    id="sortOrder"
+                                                    th:field="*{sort.sortOrder}">
+                                                <option value="asc">
+                                                    Ascending
+                                                </option>
+                                                <option value="desc">
+                                                    Descending
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <!-- /input-group -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /form-group -->
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col col-12 col-md-auto">
+                                <button class="btn btn-sm btn-primary" type="submit">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /form-row -->
+                    </form>
+                </div>
+                <!-- /card-body -->
+            </div>
+            <!-- /card -->
+        </div>
+        <!-- /col -->
+
+        <div class="col col-12 mt-4">
+            <div class="card overflow-x-auto">
+                <div class="card-body">
+                    <table
+                            class="table table-sm table-hover">
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>SSN</th>
-                            <th>First name</th>
-                            <th>Last name</th>
+                            <th>Surname</th>
+                            <th>Name</th>
+                            <th>Sex</th>
                             <th>Birthdate</th>
+                            <th>Dead</th>
+                            <th>Birthplace</th>
+                            <th>Address</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="patient, iter : ${patients}">
-                            <td th:text="${iter.index+1}"></td>
-                            <td th:text="${patient.getSSN()}"></td>
-                            <td th:text="${patient.getName()}"></td>
+                        <tr th:if="${#lists.isEmpty(patients)}">
+                            <td class="text-center" colspan="9">
+                                No patients found
+                            </td>
+                        </tr>
+                        <tr th:each="patient, iter : ${patients.getEntries()}">
+                            <td th:text="${iter.count}"></td>
                             <td th:text="${patient.getSurname()}"></td>
+                            <td th:text="${patient.getName()}"></td>
+                            <td th:text="${patient.getSex()}"></td>
                             <td th:text="${patient.getBirthDate()}"></td>
+                            <td th:text="${patient.getDead()}"></td>
+                            <td th:text="${patient.getBirthPlace()}"></td>
+                            <td th:text="${#strings.listJoin(patient.getAddress(), ', ')}"></td>
+                            <td>
+                                <a
+                                        class="btn btn-sm btn-outline-primary"
+                                        th:href="@{/web/patient/__${patient.getId()}__}"
+                                        title="Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/encounters}"
+                                        title="Encounter history">
+                                    <i
+                                            class="fas fa-stethoscope"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/imaging-studies}"
+                                        title="Imaging studies">
+                                    <i class="fas fa-x-ray"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/devices}"
+                                        title="Devices used">
+                                    <i
+                                            class="fas fa-tachograph-digital"></i>
+                                </a>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
+
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item" th:if="${patients.hasPrev()}">
+                                <a class="page-link" th:href="@{'/web/patients/' + ${page - 1} + '?' + ${paramString}}">&lt;</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#" th:text="${page}">&lt;</a>
+                            </li>
+                            <li class="page-item" th:if="${patients.hasNext()}">
+                                <a class="page-link" th:href="@{'/web/patients/' + ${page + 1} + '?' + ${paramString}}">&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
-
-            <!-- Pagination -->
-            <nav aria-label="Page navigation example">
-                <ul class="pagination">
-                    <li th:if="${hasPrev}" class="page-item"><a class="page-link" th:href="'/patients/' + ${page - 1}">Previous</a></li>
-                    <li class="page-item active"><a th:text="${page}" class="page-link" href="#"></a></li>
-                    <li th:if="${hasNext}" class="page-item"><a class="page-link" th:href="'/patients/' + ${page + 1}">Next</a></li>
-                </ul>
-            </nav>
         </div>
     </div>
-    <script src="/js/bootstrap.bundle.min.js"></script>
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+
+<script>
+    function checkDeadValue() {
+        if ($('#dead').is(':checked')) {
+            $('#deadDateRange').removeClass('d-none');
+            $('#deadDateRange input').prop('disabled', false);
+        } else {
+            $('#deadDateRange').addClass('d-none');
+            $('#deadDateRange input').prop('disabled', true);
+        }
+    }
+
+    $(document).ready(function () {
+        checkDeadValue();
+
+        $('#dead').change(function () {
+            checkDeadValue();
+        });
+    })
+</script>
 </body>
 </html>

@@ -1,22 +1,20 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import org.apache.commons.csv.CSVRecord;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Procedure;
+import org.hl7.fhir.r4.model.Reference;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProceduresLoader implements Loader {
+public class ProceduresLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public ProceduresLoader() {
-        records = Helper.parse("procedures");
-        if (records == null) {
-            Helper.logSevere("Failed to load procedures");
-        }
+    ProceduresLoader(DatasetService datasetService) {
+        super(datasetService, "procedures");
     }
 
     @Override
@@ -25,8 +23,8 @@ public class ProceduresLoader implements Loader {
         List<Procedure> buffer = new ArrayList<>();
 
         for (CSVRecord record : records) {
-            Reference pat = Helper.resolveUID(Patient.class, record.get("PATIENT"));
-            Reference enc = Helper.resolveUID(Encounter.class, record.get("ENCOUNTER"));
+            Reference pat = new Reference("Patient/" + record.get("PATIENT"));
+            Reference enc = new Reference("Encounter/" + record.get("ENCOUNTER"));
 
             Procedure proc = new Procedure();
             proc.getPerformedDateTimeType().setValueAsString(record.get("DATE"));
@@ -52,18 +50,18 @@ public class ProceduresLoader implements Loader {
             count++;
             buffer.add(proc);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionCreateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d procedures", count);
+                    datasetService.logInfo("Loaded %d procedures", count);
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL procedures");
+        datasetService.logInfo("Loaded ALL procedures");
     }
 }

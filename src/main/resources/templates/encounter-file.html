@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Encounter file</title>
+
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1 th:text="|Encounter ${encounter.getId()}|"></h1>
+
+        <nav aria-label="breadcrumb" class="mt-3" th:switch="${referral}">
+            <ol class="breadcrumb" th:case="'patient'">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patients}">Patients</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="|@{${encounter.getPatient().getUri()}}|"
+                       th:text="${encounter.getPatient().getDisplay()}"></a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="|@{${encounter.getPatient().getUri()}/encounters}|">Encounters</a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active"
+                    th:text="|Encounter ${encounter.getId()}|"></li>
+            </ol>
+            <ol class="breadcrumb" th:case="'practitioner'">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/practitioners}">Practitioners</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="|@{${encounter.getPractitioner().getUri()}}|"
+                       th:text="${encounter.getPractitioner().getDisplay()}"></a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="|@{${encounter.getPractitioner().getUri()}/encounters}|">Encounters</a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active"
+                    th:text="|Encounter ${encounter.getId()}|"></li>
+            </ol>
+            <ol class="breadcrumb" th:case="*">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">Encounters</li>
+                <li aria-current="page" class="breadcrumb-item active"
+                    th:text="|Encounter ${encounter.getId()}|"></li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 col-md-8 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Details
+                    </h5>
+                    <div class="row">
+                        <div class="col col-12 col-md-7">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th scope="row">
+                                        Patient
+                                    </th>
+                                    <td>
+                                        <a class="internal" th:href="|@{${encounter.getPatient().getUri()}}|"
+                                           th:text="${encounter.getPatient().getDisplay()}"></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        Practitioner
+                                    </th>
+                                    <td>
+                                        <a class="internal" th:href="|@{${encounter.getPractitioner().getUri()}}|"
+                                           th:text="${encounter.getPractitioner().getDisplay()}"></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        Service provider
+                                    </th>
+                                    <td>
+                                        <a class="internal" th:href="|@{${encounter.getOrganization().getUri()}}|"
+                                           th:text="${encounter.getOrganization().getDisplay()}"></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Base cost</th>
+                                    <td th:text="${encounter.getBaseCost()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total cost</th>
+                                    <td th:text="${encounter.getTotalCost()}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col col-12 col-md-5">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th scope="row">Datetime</th>
+                                    <td th:text="${encounter.getDatetime()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Type</th>
+                                    <td>
+                                        <a class="external" th:href="|@{${encounter.getType().getUri()}}|"
+                                           th:text="${encounter.getType().getDisplay()}"></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Reason</th>
+                                    <td>
+                                        <a class="external"
+                                           th:href="|@{${encounter.getReason().getUri()}}|"
+                                           th:if="${!encounter.getReason().getUri().isEmpty()}"
+                                           th:text="${encounter.getReason().getDisplay()}"></a>
+                                        <th:block th:if="${encounter.getReason().getUri().isEmpty()}"
+                                                  th:text="${encounter.getReason().getDisplay()}"></th:block>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Covered</th>
+                                    <td th:text="${encounter.getCovered()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Insurer</th>
+                                    <td>
+                                        <a class="internal" th:href="|@{${encounter.getPayer().getUri()}}|"
+                                           th:text="${encounter.getPayer().getDisplay()}"></a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div> <!-- /col -->
+                    </div> <!-- /row -->
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-12 col-md-4 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        CDA export
+                    </h5>
+                    <th:block th:if="${encounter.getBase64CDA().isEmpty()}">
+                        <p class="card-text">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            A C-CDA document has never been created for this encounter
+                        </p>
+                        <a th:href="@{/web/encounter/__${encounter.getId()}__/cda}"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-file-export"></i>
+                            Create C-CDA document
+                        </a>
+                    </th:block>
+                    <th:block th:if="${!encounter.getBase64CDA().isEmpty()}">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <th scope="row">Created on</th>
+                                <td th:text="${encounter.getCdaCreationDate()}"></td>
+                            </tr>
+                        </table>
+                        <a th:if="${!encounter.getBase64CDA().isEmpty()}"
+                           th:href="|data:text/xml;base64,${encounter.getBase64CDA()}|" download="encounter.cda"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-download"></i>
+                            Download CDA
+                        </a>
+                        <a th:href="@{/web/encounter/__${encounter.getId()}__/cda}"
+                           class="btn btn-success btn-sm">
+                            <i class="fas fa-repeat"></i>
+                            Update C-CDA document
+                        </a>
+                    </th:block>
+                </div> <!-- /card-body -->
+            </div> <!-- /card -->
+        </div> <!-- /col -->
+    </div> <!-- /row -->
+    <div class="row">
+        <div class="col col-12 col-md-6">
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Prescriptions
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">Medication</th>
+                                <th scope="col">Period</th>
+                                <th scope="col">Cost</th>
+                                <th scope="col">Covered</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${prescriptions.isEmpty()}">
+                                <td class="text-center" colspan="4">No prescriptions</td>
+                            </tr>
+                            <tr th:each="prescription : ${prescriptions.getEntries()}">
+                                <td>
+                                    <a class="external" th:href="|@{${prescription.getMedication().getUri()}}|"
+                                       th:text="${prescription.getMedication().getDisplay()}"></a>
+                                </td>
+                                <td th:text="|${prescription.getStart()} - ${prescription.getEnd()}|"></td>
+                                <td th:text="${prescription.getTotalCost()}"></td>
+                                <td>
+                                    <th:block th:text="${prescription.getCovered()}"></th:block>
+                                    &nbsp;(by <a class="internal" th:href="@{${prescription.getPayer().getUri()}}"
+                                                 th:text="${prescription.getPayer().getDisplay()}"></a>)
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- /card-body -->
+                </div> <!-- /card -->
+            </div> <!-- /col -->
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Imaging studies
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Body site</th>
+                                <th scope="col">Modality</th>
+                                <th scope="col">SOP</th>
+                                <th scope="col">&nbsp;</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${imagingStudies.isEmpty()}">
+                                <td class="text-center" colspan="6">No imaging studies</td>
+                            </tr>
+                            <tr th:each="imagingStudy, iter : ${imagingStudies.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${imagingStudy.getDate()}"></td>
+                                <td>
+                                    <a class="external" th:href="|@{${imagingStudy.getBodySite().getUri()}}|"
+                                       th:text="${imagingStudy.getBodySite().getDisplay()}"></a>
+                                </td>
+                                <td>
+                                    <a class="external" th:href="|@{${imagingStudy.getModality().getUri()}}|"
+                                       th:text="${imagingStudy.getModality().getDisplay()}"></a>
+                                </td>
+                                <td>
+                                    <a class="external" th:href="|@{${imagingStudy.getSop().getUri()}}|"
+                                       th:text="${imagingStudy.getSop().getDisplay()}"></a>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" title="View images"
+                                    th:href="@{/web/imaging-study/__${imagingStudy.getId()}__}">
+                                        <i class="fas fa-x-ray"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div> <!-- /card-body -->
+                </div> <!-- /card -->
+            </div> <!-- /col -->
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Procedures
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Code</th>
+                                <th scope="col">Reason</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${procedures.isEmpty()}">
+                                <td class="text-center" colspan="4">No procedures</td>
+                            </tr>
+                            <tr th:each="proc, iter : ${procedures.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${proc.getDatetime()}"></td>
+                                <td>
+                                    <th:block th:if="${!proc.getCode().isValid()}"
+                                              th:text="${proc.getCode().getDisplay()}">
+                                    </th:block>
+                                    <a th:href="${proc.getCode().getUri()}"
+                                       th:if="${proc.getCode().isValid()}"
+                                       th:text="${proc.getCode().getDisplay()}">
+                                    </a>
+                                </td>
+                                <td>
+                                    <th:block th:if="${!proc.getReason().isValid()}"
+                                              th:text="${proc.getReason().getDisplay()}">
+                                    </th:block>
+                                    <a th:href="${proc.getReason().getUri()}"
+                                       th:if="${proc.getReason().isValid()}"
+                                       th:text="${proc.getReason().getDisplay()}">
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- /card-body -->
+                </div> <!-- /card -->
+            </div> <!-- /col -->
+        </div> <!-- /biggerLeftCol -->
+
+        <div class="col col-12 col-md-6">
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Observations
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${observations.isEmpty()}">
+                                <td class="text-center" colspan="4">No observations</td>
+                            </tr>
+                            <tr th:each="obs, iter : ${observations.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td>
+                                    <a class="external" th:href="|@{${obs.getCode().getUri()}}|"
+                                       th:text="${obs.getCode().getDisplay()}"></a>
+                                </td>
+                                <td th:text="${obs.getValue()}"></td>
+                            </tbody>
+                        </table>
+                    </div> <!-- /card-body -->
+                </div> <!-- /card -->
+            </div> <!-- /col -->
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Conditions
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Onset</th>
+                                <th scope="col">Abatement</th>
+                                <th scope="col">Condition</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${conditions.isEmpty()}">
+                                <td class="text-center" colspan="4">No conditions</td>
+                            </tr>
+                            <tr th:each="condition, iter : ${conditions.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${condition.getStart()}"></td>
+                                <td th:text="${condition.getStop()}"></td>
+                                <td>
+                                    <a class="external" th:href="|@{${condition.getCode().getUri()}}|"
+                                       th:text="${condition.getCode().getDisplay()}"></a>
+                                </td>
+                        </table>
+                    </div>
+                </div>
+            </div> <!-- /col -->
+            <div class="col col-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="font-weight: 600">
+                            Immunizations
+                        </h5>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Vaccine</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${immunizations.isEmpty()}">
+                                <td class="text-center" colspan="4">No immunizations</td>
+                            </tr>
+                            <tr th:each="imm, iter : ${immunizations.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${imm.getDate()}"></td>
+                                <td>
+                                    <th:block th:if="${!imm.getVaccine().isValid()}"
+                                              th:text="${imm.getVaccine().getDisplay()}">
+                                    </th:block>
+                                    <a th:href="${imm.getVaccine().getUri()}"
+                                       th:if="${imm.getVaccine().isValid()}"
+                                       th:text="${imm.getVaccine().getDisplay()}">
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> <!-- /col -->
+        </div> <!-- /biggerRightCol -->
+    </div> <!-- /row -->
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+</body>
+</html>

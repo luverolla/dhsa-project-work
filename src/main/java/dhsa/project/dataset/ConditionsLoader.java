@@ -1,22 +1,17 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConditionsLoader implements Loader {
+public class ConditionsLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public ConditionsLoader() {
-        records = Helper.parse("conditions");
-        if (records == null) {
-            Helper.logSevere("Failed to load conditions");
-        }
+    ConditionsLoader(DatasetService datasetService) {
+        super(datasetService, "conditions");
     }
 
     @Override
@@ -25,14 +20,14 @@ public class ConditionsLoader implements Loader {
         List<Condition> buffer = new ArrayList<>();
 
         for (CSVRecord rec : records) {
-            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
-            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
+            Reference pat = new Reference("Patient/" + rec.get("PATIENT"));
+            Reference enc = new Reference("Encounter/" + rec.get("ENCOUNTER"));
 
             Condition cond = new Condition();
 
             cond.setOnset(DateTimeType.parseV3(rec.get("START")));
 
-            if (Helper.hasProp(rec, "STOP"))
+            if (datasetService.hasProp(rec, "STOP"))
                 cond.setAbatement(DateTimeType.parseV3(rec.get("STOP")));
 
             cond.setSubject(pat);
@@ -49,18 +44,18 @@ public class ConditionsLoader implements Loader {
             count++;
             buffer.add(cond);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionCreateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d conditions".formatted(buffer.size()));
+                    datasetService.logInfo("Loaded %d conditions".formatted(count));
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL conditions");
+        datasetService.logInfo("Loaded ALL conditions");
     }
 }

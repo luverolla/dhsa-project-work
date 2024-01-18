@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -10,14 +10,10 @@ import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatientsLoader implements Loader {
-    private final Iterable<CSVRecord> records;
+public class PatientsLoader extends BaseLoader {
 
-    public PatientsLoader() {
-        records = Helper.parse("patients");
-        if (records == null) {
-            Helper.logSevere("Failed to load patients");
-        }
+    PatientsLoader(DatasetService datasetService) {
+        super(datasetService, "patients");
     }
 
     @Override
@@ -34,7 +30,7 @@ public class PatientsLoader implements Loader {
                 .setUrl("http://hl7.org/fhir/StructureDefinition/patient-birthPlace")
                 .setValue(new Address().setText(rec.get("BIRTHPLACE")));
 
-            if (Helper.hasProp(rec, "MAIDEN"))
+            if (datasetService.hasProp(rec, "MAIDEN"))
                 patient.addExtension()
                     .setUrl("http://hl7.org/fhir/StructureDefinition/patient-mothersMaidenName")
                     .setValue(new StringType(rec.get("MAIDEN")));
@@ -60,15 +56,15 @@ public class PatientsLoader implements Loader {
             HumanName name = new HumanName();
             name.addGiven(rec.get("FIRST"));
             name.setFamily(rec.get("LAST"));
-            if (Helper.hasProp(rec, "PREFIX"))
+            if (datasetService.hasProp(rec, "PREFIX"))
                 name.addPrefix(rec.get("PREFIX"));
-            if (Helper.hasProp(rec, "SUFFIX"))
+            if (datasetService.hasProp(rec, "SUFFIX"))
                 name.addSuffix(rec.get("SUFFIX"));
             patient.addName(name);
 
-            patient.setBirthDate(Helper.parseDate(rec.get("BIRTHDATE")));
-            if (Helper.hasProp(rec, "DEATHDATE"))
-                patient.setDeceased(new DateTimeType(Helper.parseDate(rec.get("DEATHDATE"))));
+            patient.setBirthDate(datasetService.parseDate(rec.get("BIRTHDATE")));
+            if (datasetService.hasProp(rec, "DEATHDATE"))
+                patient.setDeceased(new DateTimeType(datasetService.parseDate(rec.get("DEATHDATE"))));
             else
                 patient.setDeceased(new BooleanType(false));
 
@@ -120,7 +116,7 @@ public class PatientsLoader implements Loader {
                 rec.get("GENDER").equals("M") ? AdministrativeGender.MALE : AdministrativeGender.FEMALE
             );
 
-            if (Helper.hasProp(rec, "MARITAL"))
+            if (datasetService.hasProp(rec, "MARITAL"))
                 patient.setMaritalStatus(new CodeableConcept()
                     .addCoding(new Coding()
                         .setSystem("http://terminology.hl7.org/CodeSystem/v3-MaritalStatus")
@@ -130,18 +126,18 @@ public class PatientsLoader implements Loader {
 
             count++;
             buffer.add(patient);
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d patients", count);
+                    datasetService.logInfo("Loaded %d patients", count);
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL patients");
+        datasetService.logInfo("Loaded ALL patients");
     }
 }

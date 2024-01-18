@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -9,15 +9,10 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrganizationsLoader implements Loader {
+public class OrganizationsLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public OrganizationsLoader() {
-        records = Helper.parse("organizations");
-        if (records == null) {
-            Helper.logSevere("Failed to load organizations");
-        }
+    OrganizationsLoader(DatasetService datasetService) {
+        super(datasetService, "organizations");
     }
 
     @Override
@@ -64,18 +59,18 @@ public class OrganizationsLoader implements Loader {
 
             count++;
             buffer.add(org);
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d organizations".formatted(buffer.size()));
+                    datasetService.logInfo("Loaded %d organizations".formatted(count));
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL organizations");
+        datasetService.logInfo("Loaded ALL organizations");
     }
 }

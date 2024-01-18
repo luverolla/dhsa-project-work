@@ -2,45 +2,34 @@ package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
 import com.pixelmed.dicom.TagFromName;
-import dhsa.project.data.DicomHandle;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.dicom.DicomHandle;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.ImagingStudy;
+import org.hl7.fhir.r4.model.Reference;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class ImagingStudiesLoader implements Loader {
+public class ImagingStudiesLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
+    private Map<String, String> patientIndex = new HashMap<>();
 
-    public ImagingStudiesLoader() {
-        records = Helper.parse("imaging_studies");
-        if (records == null) {
-            Helper.logSevere("Failed to load imaging studies");
-        }
+    ImagingStudiesLoader(DatasetService datasetService) {
+        super(datasetService, "imaging_studies");
+        patientIndex = makeIndex();
     }
 
-    private DicomHandle getDicomFile(String patientId) {
-        Path root = Path.of(Helper.basePath + "/dicom");
-        try (var stream = Files.walk(root)) {
-            Path path = stream
-                .filter(Files::isRegularFile)
-                .filter(f -> f.getFileName().toString().contains(patientId))
-                .findFirst().orElse(null);
-
-            if (path == null)
-                return null;
-
-            return new DicomHandle(path.toFile());
-        } catch (IOException e) {
-            return null;
-        }
+    private Map<String, String> makeIndex() {
+        Map<String, String> index = new HashMap<>();
+        for (CSVRecord rec : datasetService.parse("patients"))
+            index.put(rec.get("Id"), rec.get("FIRST") + "_" + rec.get("LAST"));
+        return index;
     }
 
     @SneakyThrows
@@ -50,9 +39,11 @@ public class ImagingStudiesLoader implements Loader {
         List<ImagingStudy> buffer = new ArrayList<>();
 
         for (CSVRecord rec : records) {
-            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
-            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
-            DicomHandle dicom = getDicomFile(rec.get("PATIENT"));
+            Reference pat = new Reference("Patient/" + rec.get("PATIENT"));
+            Reference enc = new Reference("Encounter/" + rec.get("ENCOUNTER"));
+
+            String filename = patientIndex.get(rec.get("PATIENT")) + "_" + rec.get("PATIENT");
+            DicomHandle dicom = datasetService.getDicomService().getDicomFile(filename);
 
             if (dicom == null)
                 continue;
@@ -71,7 +62,7 @@ public class ImagingStudiesLoader implements Loader {
                 .setSystem("urn:ietf:rfc:3986")
                 .setValue(rec.get("Id"));
 
-            is.setStarted(Helper.parseDate(rec.get("DATE")));
+            is.setStarted(datasetService.parseDate(rec.get("DATE")));
             is.setSubject(pat);
             is.setEncounter(enc);
 
@@ -83,15 +74,15 @@ public class ImagingStudiesLoader implements Loader {
 
             ImagingStudy.ImagingStudySeriesComponent series = is.addSeries();
             if (dicom.hasAttr(TagFromName.SeriesDate))
-                series.setStarted(Helper.parseDate(dicom.getString(TagFromName.SeriesDate)));
+                series.setStarted(datasetService.parseDate(dicom.getString(TagFromName.SeriesDate)));
             series.setUid(dicom.getString(TagFromName.SeriesInstanceUID));
             series.setNumber(dicom.getInt(TagFromName.SeriesNumber));
             series.setDescription(dicom.getString(TagFromName.SeriesDescription));
             series.setBodySite(new Coding()
-                    .setSystem("http://snomed.info/sct")
-                    .setCode(rec.get("BODYSITE_CODE"))
-                    .setDisplay(rec.get("BODYSITE_DESCRIPTION"))
-                );
+                .setSystem("http://snomed.info/sct")
+                .setCode(rec.get("BODYSITE_CODE"))
+                .setDisplay(rec.get("BODYSITE_DESCRIPTION"))
+            );
             series.setLaterality(new Coding()
                     .setSystem("http://snomed.info/sct")
                     .setCode(dicom.getString(TagFromName.Laterality))
@@ -122,18 +113,18 @@ public class ImagingStudiesLoader implements Loader {
             count++;
             buffer.add(is);
 
-            if (count % 10 == 0) {
+            if (count % 10 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 100 == 0)
-                    Helper.logInfo("Loaded %d imaging studies", count);
+                    datasetService.logInfo("Loaded %d imaging studies", count);
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL imaging studies");
+        datasetService.logInfo("Loaded ALL imaging studies");
     }
 }

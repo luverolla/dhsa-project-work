@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -9,15 +9,10 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EncountersLoader implements Loader {
+public class EncountersLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public EncountersLoader() {
-        records = Helper.parse("encounters");
-        if (records == null) {
-            Helper.logSevere("Failed to load encounters");
-        }
+    EncountersLoader(DatasetService datasetService) {
+        super(datasetService, "encounters");
     }
 
     @Override
@@ -29,10 +24,11 @@ public class EncountersLoader implements Loader {
         List<ExplanationOfBenefit> eobBuffer = new ArrayList<>();
 
         for (CSVRecord rec : records) {
-            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
-            Reference pro = Helper.resolveUID(Practitioner.class, rec.get("PROVIDER"));
-            Reference org = Helper.resolveUID(Organization.class, rec.get("ORGANIZATION"));
-            Reference pay = Helper.resolveUID(Organization.class, rec.get("PAYER"));
+
+            Reference pat = new Reference("Patient/" + rec.get("PATIENT"));
+            Reference pro = new Reference("Practitioner/" + rec.get("PROVIDER"));
+            Reference org = new Reference("Organization/" + rec.get("ORGANIZATION"));
+            Reference pay = new Reference("Organization/" + rec.get("PAYER"));
 
             Encounter encounter = new Encounter();
             Claim claim = new Claim();
@@ -70,14 +66,15 @@ public class EncountersLoader implements Loader {
                 );
 
             encounter.setPeriod(new Period()
-                .setStart(Helper.parseDate(rec.get("START")))
+                .setStart(datasetService.parseDatetime(rec.get("START")))
             );
 
-            if (Helper.hasProp(rec, "STOP"))
-                encounter.getPeriod().setEnd(Helper.parseDate(rec.get("STOP")));
+            if (datasetService.hasProp(rec, "STOP"))
+                encounter.getPeriod().setEnd(datasetService.parseDatetime(rec.get("STOP")));
 
+            claim.setId("CE-" + (count + 1));
             claim.addItem()
-                .addEncounter(new Reference(encounter))
+                .addEncounter(new Reference("Encounter/" + rec.get("Id")))
                 .setQuantity(new Quantity()
                     .setValue(1)
                     .setUnit("#")
@@ -99,15 +96,16 @@ public class EncountersLoader implements Loader {
                 .setCurrency("USD")
             );
 
+            eob.setId("EE-" + (count + 1));
             eob.setStatus(ExplanationOfBenefit.ExplanationOfBenefitStatus.ACTIVE);
             eob.setOutcome(ExplanationOfBenefit.RemittanceOutcome.COMPLETE);
-            eob.setClaim(new Reference(claim));
+            eob.setClaim(new Reference("Claim/CE-" + (count + 1)));
             eob.setPatient(pat);
             eob.setInsurer(pay);
             eob.getPayee().setParty(pat);
 
             eob.addItem()
-                .addEncounter(new Reference(encounter))
+                .addEncounter(new Reference("Encounter/" + rec.get("Id")))
                 .addAdjudication()
                 .setCategory(new CodeableConcept()
                     .addCoding(new Coding()
@@ -125,15 +123,15 @@ public class EncountersLoader implements Loader {
             claimBuffer.add(claim);
             eobBuffer.add(eob);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 encBuffer.forEach(bb::addTransactionUpdateEntry);
-                claimBuffer.forEach(bb::addTransactionCreateEntry);
-                eobBuffer.forEach(bb::addTransactionCreateEntry);
+                claimBuffer.forEach(bb::addTransactionUpdateEntry);
+                eobBuffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d encounters", count);
+                    datasetService.logInfo("Loaded %d encounters", count);
 
                 encBuffer.clear();
                 claimBuffer.clear();
@@ -142,6 +140,6 @@ public class EncountersLoader implements Loader {
         }
 
 
-        Helper.logInfo("loaded ALL encounters");
+        datasetService.logInfo("loaded ALL encounters");
     }
 }

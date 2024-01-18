@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -10,15 +10,10 @@ import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProvidersLoader implements Loader {
+public class ProvidersLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public ProvidersLoader() {
-        records = Helper.parse("providers");
-        if (records == null) {
-            Helper.logSevere("Failed to load providers");
-        }
+    ProvidersLoader(DatasetService datasetService) {
+        super(datasetService, "providers");
     }
 
     @Override
@@ -27,7 +22,7 @@ public class ProvidersLoader implements Loader {
         List<Practitioner> buffer = new ArrayList<>();
         int count = 0;
         for (CSVRecord rec : records) {
-            Reference org = Helper.resolveUID(Organization.class, rec.get("ORGANIZATION"));
+            Reference org = new Reference("Organization/" + rec.get("ORGANIZATION"));
 
             Practitioner provider = new Practitioner();
             provider.setId(rec.get("Id"));
@@ -78,18 +73,18 @@ public class ProvidersLoader implements Loader {
             count++;
             buffer.add(provider);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d practitioners".formatted(buffer.size()));
+                    datasetService.logInfo("Loaded %d practitioners".formatted(count));
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL practitioners");
+        datasetService.logInfo("Loaded ALL practitioners");
     }
 }

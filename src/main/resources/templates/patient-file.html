@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="|Patient file of ${patient.getSurname()} ${patient.getName()} (${patient.getSsnNumber()})|"></title>
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1 th:text="|${patient.getSurname()} ${patient.getName()} (${patient.getSsnNumber()})|"></h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patients}">Patients</a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active"
+                    th:text="|${patient.getSurname()} ${patient.getName()} (${patient.getSsnNumber()})|">
+                </li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 col-md-8 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Details
+                    </h5>
+                    <div class="row">
+                        <div class="col col-12 col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th scope="row">Full name</th>
+                                    <td th:text="|${patient.getName()} ${patient.getSurname()}|"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Birth date</th>
+                                    <td th:text="${patient.getBirthDate()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Life status</th>
+                                    <th:block th:switch="${patient.getDead()}">
+                                        <td th:case="''">unknown</td>
+                                        <td th:case="'no'">alive</td>
+                                        <td th:case="*" th:text="|dead (${patient.getDead()})|"></td>
+                                    </th:block>
+                                </tr>
+                                <tr>
+                                    <th scope="row">SSN number</th>
+                                    <td th:text="${patient.getSsnNumber()}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col col-12 col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th scope="row">Sex</th>
+                                    <td th:text="${patient.getSex()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Birthplace</th>
+                                    <td th:text="${patient.getBirthPlace()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Passport</th>
+                                    <td th:text="${patient.getPassport()}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Driver's lic.</th>
+                                    <td th:text="${patient.getDriverLicense()}"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col col-12 col-md-4 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Address
+                    </h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th scope="row">Street</th>
+                            <td th:text="${patient.getAddress().get(0)}"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">State</th>
+                            <td th:text="${patient.getAddress().get(2)}"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">City</th>
+                            <td th:text="${patient.getAddress().get(1)}"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Zip code</th>
+                            <th:block th:switch="${patient.getAddress().size()}">
+                                <td th:case="'4'" th:text="${patient.getAddress().get(3)}"></td>
+                                <td th:case="*">N/D</td>
+                            </th:block>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col col-12 col-md-6 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Last encounters
+                    </h5>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Datetime</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${encounters.isEmpty()}">
+                            <td colspan="5">No encounters</td>
+                        </tr>
+                        <tr th:each="encounter, iter : ${encounters.getEntries()}">
+                            <td th:text="${iter.count}"></td>
+                            <td th:text="${encounter.getDatetime()}"></td>
+                            <td>
+                                <a class="external" th:href="${encounter.getType().getUri()}"
+                                   th:text="${encounter.getType().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external"
+                                   th:href="${encounter.getReason().getUri()}"
+                                   th:if="${encounter.getReason().isValid()}"
+                                   th:text="${encounter.getReason().getDisplay()}"></a>
+                                <th:block th:if="${!encounter.getReason().isValid()}"
+                                          th:text="${encounter.getReason().getDisplay()}"></th:block>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{'/web/encounter/' + ${encounter.getId()} + '?referral=patient'}"
+                                   title="View details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="row justify-content-end">
+                        <div class="col col-12 col-md-auto mt-2">
+                            <a class="btn btn-sm btn-primary"
+                               th:href="@{/web/patient/__${patient.getId()}__/encounters}">
+                                View all
+                            </a>
+                        </div> <!-- col -->
+                    </div> <!-- row -->
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+        <div class="col col-12 col-md-6 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Last observations
+                    </h5>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Datetime</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Value</th>
+                            <th scope="col">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${observations.isEmpty()}">
+                            <td class="text-center" colspan="5">No observations</td>
+                        </tr>
+                        <tr th:each="obs, iter : ${observations.getEntries()}">
+                            <td th:text="${iter.count}"></td>
+                            <td th:text="${obs.getDatetime()}"></td>
+                            <td>
+                                <a class="external" th:href="|@{${obs.getCode().getUri()}}|"
+                                   th:text="${obs.getCode().getDisplay()}"></a>
+                            </td>
+                            <td th:text="${obs.getValue()}"></td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" th:href="@{${obs.getEncounter()}}"
+                                   th:if="${!obs.getEncounter().isEmpty()}" title="View encounter details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div> <!-- /card-body -->
+            </div> <!-- /card -->
+        </div> <!-- /col -->
+        <div class="col col-12 col-md-8 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Last imaging studies
+                    </h5>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Body site</th>
+                            <th scope="col">Modality</th>
+                            <th scope="col">SOP</th>
+                            <th scope="col">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${imagingStudies.isEmpty()}">
+                            <td class="text-center" colspan="6">No imaging studies</td>
+                        </tr>
+                        <tr th:each="imagingStudy, iter : ${imagingStudies.getEntries()}">
+                            <td th:text="${iter.count}"></td>
+                            <td th:text="${imagingStudy.getDate()}"></td>
+                            <td>
+                                <a class="external" th:href="|@{${imagingStudy.getBodySite().getUri()}}|"
+                                   th:text="${imagingStudy.getBodySite().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="|@{${imagingStudy.getModality().getUri()}}|"
+                                   th:text="${imagingStudy.getModality().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="|@{${imagingStudy.getSop().getUri()}}|"
+                                   th:text="${imagingStudy.getSop().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary" title="View images"
+                                   th:href="@{/web/imaging-study/__${imagingStudy}__}">
+                                    <i class="fas fa-x-ray"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </div> <!-- /card-body -->
+            </div> <!-- /card -->
+        </div> <!-- /col -->
+    </div> <!-- row -->
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+</body>
+</html>

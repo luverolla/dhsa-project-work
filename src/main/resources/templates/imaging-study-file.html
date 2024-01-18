@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="|Imaging study ${imagingStudy.getId()}|"></title>
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1 th:text="|Imaging study ${imagingStudy.getId()}|"></h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    Imaging studies
+                </li>
+                <li aria-current="page" class="breadcrumb-item active"
+                    th:text="|Imaging study ${imagingStudy.getId()}|">
+                </li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <img height="128"
+                         th:alt="|Frame ${iter.count}|" th:each="frame, iter : ${imagingStudy.getFrames()}"
+                         th:src="@{'data:image/png;base64,'+${frame}}" th:title="|Frame ${iter.count}|"
+                    />
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+    </div> <!-- row -->
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+</body>
+</html>

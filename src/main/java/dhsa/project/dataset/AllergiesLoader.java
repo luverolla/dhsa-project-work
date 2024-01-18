@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -9,15 +9,10 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllergiesLoader implements Loader {
+public class AllergiesLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public AllergiesLoader() {
-        records = Helper.parse("allergies");
-        if (records == null) {
-            Helper.logSevere("Failed to load allergies");
-        }
+    AllergiesLoader(DatasetService datasetService) {
+        super(datasetService, "allergies");
     }
 
     @Override
@@ -30,11 +25,11 @@ public class AllergiesLoader implements Loader {
             AllergyIntolerance alin = new AllergyIntolerance();
             alin.setOnset(DateTimeType.parseV3(rec.get("START")));
 
-            if (Helper.hasProp(rec, "STOP"))
-                alin.setLastOccurrence(Helper.parseDate(rec.get("STOP")));
+            if (datasetService.hasProp(rec, "STOP"))
+                alin.setLastOccurrence(datasetService.parseDate(rec.get("STOP")));
 
-            alin.setPatient(Helper.resolveUID(Patient.class, rec.get("PATIENT")));
-            alin.setEncounter(Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER")));
+            alin.setPatient(new Reference("Patient/" + rec.get("PATIENT")));
+            alin.setEncounter(new Reference("Encounter/" + rec.get("ENCOUNTER")));
             alin.setCode(new CodeableConcept()
                 .addCoding(new Coding()
                     .setSystem("http://snomed.info/sct")
@@ -46,18 +41,18 @@ public class AllergiesLoader implements Loader {
             count++;
             buffer.add(alin);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionCreateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d allergies", count);
+                    datasetService.logInfo("Loaded %d allergies", count);
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL allergies");
+        datasetService.logInfo("Loaded ALL allergies");
     }
 }

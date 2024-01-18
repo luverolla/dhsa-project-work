@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1>Organizations</h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Organizations
+                </li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 col-md-3 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Search
+                    </h5>
+                    <form th:action="@{/web/organizations/__${page}__}" th:object="${orgSearch}">
+                        <div class="row mb-2">
+                            <div class="form-group col col-12">
+                                <label class="small" for="name" th:field="*{name}">
+                                    Name
+                                </label>
+                                <input
+                                        class="form-control form-control-sm"
+                                        id="name"
+                                        placeholder="Enter name" th:field="*{name}"
+                                        type="text"/>
+                            </div>
+                            <div class="form-group col col-12">
+                                <label class="small" for="state" th:field="*{state}">
+                                    State
+                                </label>
+                                <select class="form-select form-select-sm" data-provides="select2"
+                                        id="state"
+                                        th:field="*{state}">
+                                    <option value="">Any</option>
+                                    <option th:each="st : ${usStates.keySet()}"
+                                            th:selected="${usStates.get(st).equals(orgSearch.state)}"
+                                            th:text="${st}"
+                                            th:value="${usStates.get(st)}"></option>
+                                </select>
+                            </div>
+                            <div class="form-group col col-12">
+                                <label class="small" for="city" th:field="*{city}">
+                                    City
+                                </label>
+                                <input
+                                        class="form-control form-control-sm"
+                                        id="city"
+                                        placeholder="Enter city" th:field="*{city}"
+                                        type="text"/>
+                            </div>
+                            <div class="form-group col col-12">
+                                <label class="small" for="zip" th:field="*{zip}">
+                                    Zip
+                                </label>
+                                <input
+                                        class="form-control form-control-sm"
+                                        id="zip"
+                                        placeholder="Enter zip" th:field="*{zip}"
+                                        type="text"/>
+                            </div>
+                            <!-- /form-group -->
+                        </div>
+                        <!-- /form-row -->
+                        <h5
+                                class="card-title mt-4"
+                                style="font-weight: 600">
+                            Sort
+                        </h5>
+                        <div class="row">
+                            <div class="form-group col col-12">
+                                <label class="small" for="perPage" th:field="*{perPage}">
+                                    Elements per page
+                                </label>
+                                <select
+                                        class="form-select form-select-sm" id="perPage"
+                                        th:field="*{perPage}">
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                    <option value="25">25</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="form-group col col-12">
+                                <label class="small" for="sortField" th:field="*{sort.sortField}">
+                                    by field
+                                </label>
+                                <select
+                                        class="form-select form-select-sm"
+                                        id="sortField"
+                                        th:field="*{sort.sortField}">
+                                    <option value="name">
+                                        Name
+                                    </option>
+                                    <option
+                                            value="address-state">
+                                        State
+                                    </option>
+                                    <option
+                                            value="address-city">
+                                        City
+                                    </option>
+                                    <option
+                                            value="address-postalcode">
+                                        Zip
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group col col-12">
+                                <label class="small" for="sortOrder" th:field="*{sort.sortOrder}">
+                                    order
+                                </label>
+                                <select
+                                        class="form-select form-select-sm"
+                                        id="sortOrder"
+                                        th:field="*{sort.sortOrder}">
+                                    <option
+                                            value="">
+                                        None
+                                    </option>
+                                    <option value="asc">
+                                        Ascending
+                                    </option>
+                                    <option value="desc">
+                                        Descending
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col col-12">
+                                <button class="btn btn-sm btn-primary w-100" type="submit">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /form-row -->
+                    </form>
+                </div>
+                <!-- /card-body -->
+            </div>
+            <!-- /card -->
+        </div>
+        <!-- /col -->
+
+        <div class="col col-12 col-md-9 mt-4">
+            <div class="card overflow-x-auto">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table
+                                class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${organizations.isEmpty()}">
+                                <td class="text-center" colspan="8">
+                                    No organizations found
+                                </td>
+                            </tr>
+                            <tr th:each="org, iter : ${organizations.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${org.getName()}"></td>
+                                <td th:text="${org.getPhone()}"></td>
+                                <td th:text="${#strings.listJoin(org.getAddress(), ', ')}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item" th:if="${organizations.hasPrev()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/organizations/' + ${page - 1} + '?' + ${paramString}}">&lt;</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#" th:text="${page}">&lt;</a>
+                            </li>
+                            <li class="page-item" th:if="${organizations.hasNext()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/organizations/' + ${page + 1} + '?' + ${paramString}}">&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+
+<script th:inline="javascript">
+    $(document).ready(function () {
+        $('[data-provides="select2"]').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+</body>
+</html>

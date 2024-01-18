@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -10,15 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DevicesLoader implements Loader {
+public class DevicesLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public DevicesLoader() {
-        records = Helper.parse("devices");
-        if (records == null) {
-            Helper.logSevere("Failed to load devices");
-        }
+    DevicesLoader(DatasetService datasetService) {
+        super(datasetService, "devices");
     }
 
     private Map<String, String> splitUDI(String udi) {
@@ -40,8 +35,8 @@ public class DevicesLoader implements Loader {
         List<DeviceRequest> reqBuffer = new ArrayList<>();
 
         for (CSVRecord rec : records) {
-            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
-            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
+            Reference pat = new Reference("Patient/" + rec.get("PATIENT"));
+            Reference enc = new Reference("Encounter/" + rec.get("ENCOUNTER"));
 
             Device dev = new Device();
             DeviceRequest dr = new DeviceRequest();
@@ -78,34 +73,34 @@ public class DevicesLoader implements Loader {
             dr.setEncounter(enc);
             dr.setCode(new Reference(dev));
 
-            if (Helper.hasProp(rec, "STOP"))
+            if (datasetService.hasProp(rec, "STOP"))
                 dr.setOccurrence(new Period()
-                    .setStart(Helper.parseDate(rec.get("START")))
-                    .setEnd(Helper.parseDate(rec.get("STOP")))
+                    .setStart(datasetService.parseDatetime(rec.get("START")))
+                    .setEnd(datasetService.parseDatetime(rec.get("STOP")))
                 );
             else
                 dr.setOccurrence(new Period()
-                    .setStart(Helper.parseDate(rec.get("START")))
+                    .setStart(datasetService.parseDatetime(rec.get("START")))
                 );
 
             count++;
             devBuffer.add(dev);
             reqBuffer.add(dr);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 devBuffer.forEach(bb::addTransactionCreateEntry);
                 reqBuffer.forEach(bb::addTransactionCreateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d devices", count);
+                    datasetService.logInfo("Loaded %d devices", count);
 
                 devBuffer.clear();
                 reqBuffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL devices");
+        datasetService.logInfo("Loaded ALL devices");
     }
 }

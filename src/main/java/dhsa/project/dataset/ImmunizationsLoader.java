@@ -1,23 +1,21 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Immunization;
+import org.hl7.fhir.r4.model.Reference;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImmunizationsLoader implements Loader {
+public class ImmunizationsLoader extends BaseLoader {
 
-    private final Iterable<CSVRecord> records;
-
-    public ImmunizationsLoader() {
-        records = Helper.parse("immunizations");
-        if (records == null) {
-            Helper.logSevere("Failed to load immunizations");
-        }
+    ImmunizationsLoader(DatasetService datasetService) {
+        super(datasetService, "immunizations");
     }
 
     @Override
@@ -27,12 +25,12 @@ public class ImmunizationsLoader implements Loader {
         List<Immunization> buffer = new ArrayList<>();
 
         for (CSVRecord rec : records) {
-            Reference pat = Helper.resolveUID(Patient.class, rec.get("PATIENT"));
-            Reference enc = Helper.resolveUID(Encounter.class, rec.get("ENCOUNTER"));
+            Reference pat = new Reference("Patient/" + rec.get("PATIENT"));
+            Reference enc = new Reference("Encounter/" + rec.get("ENCOUNTER"));
 
             Immunization imm = new Immunization();
 
-            imm.setRecorded(Helper.parseDate(rec.get("DATE")));
+            imm.setRecorded(datasetService.parseDatetime(rec.get("DATE")));
             imm.setPatient(pat);
             imm.setEncounter(enc);
             imm.setVaccineCode(new CodeableConcept()
@@ -46,18 +44,18 @@ public class ImmunizationsLoader implements Loader {
             count++;
             buffer.add(imm);
 
-            if (count % 100 == 0) {
+            if (count % 100 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionCreateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d immunizations".formatted(buffer.size()));
+                    datasetService.logInfo("Loaded %d immunizations".formatted(count));
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL immunizations");
+        datasetService.logInfo("Loaded ALL immunizations");
     }
 }

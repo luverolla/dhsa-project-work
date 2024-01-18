@@ -1,7 +1,7 @@
 package dhsa.project.dataset;
 
 import ca.uhn.fhir.util.BundleBuilder;
-import dhsa.project.service.FhirWrapper;
+import dhsa.project.fhir.FhirWrapper;
 import lombok.SneakyThrows;
 import org.apache.commons.csv.CSVRecord;
 import org.hl7.fhir.r4.model.*;
@@ -9,14 +9,9 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PayersLoader implements Loader {
-    private final Iterable<CSVRecord> records;
-
-    public PayersLoader() {
-        records = Helper.parse("payers");
-        if (records == null) {
-            Helper.logSevere("Failed to load payers");
-        }
+public class PayersLoader extends BaseLoader {
+    PayersLoader(DatasetService datasetService) {
+        super(datasetService, "payers");
     }
 
     @Override
@@ -45,7 +40,7 @@ public class PayersLoader implements Loader {
                 .setState(rec.get("STATE_HEADQUARTERED"))
                 .setPostalCode(rec.get("ZIP"));
 
-            if (Helper.hasProp(rec, "LAT") && Helper.hasProp(rec, "LON"))
+            if (datasetService.hasProp(rec, "LAT") && datasetService.hasProp(rec, "LON"))
                 org.addExtension()
                     .setUrl("http://hl7.org/fhir/StructureDefinition/geolocation")
                     .setValue(new Address()
@@ -64,18 +59,18 @@ public class PayersLoader implements Loader {
             count++;
             buffer.add(org);
 
-            if (count % 10 == 0) {
+            if (count % 10 == 0 || count == records.size()) {
                 BundleBuilder bb = new BundleBuilder(FhirWrapper.getContext());
                 buffer.forEach(bb::addTransactionUpdateEntry);
                 FhirWrapper.getClient().transaction().withBundle(bb.getBundle()).execute();
 
                 if (count % 1000 == 0)
-                    Helper.logInfo("Loaded %d payers".formatted(buffer.size()));
+                    datasetService.logInfo("Loaded %d payers".formatted(count));
 
                 buffer.clear();
             }
         }
 
-        Helper.logInfo("Loaded ALL payers");
+        datasetService.logInfo("Loaded ALL payers");
     }
 }

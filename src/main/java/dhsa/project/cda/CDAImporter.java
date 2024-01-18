@@ -1,0 +1,79 @@
+package dhsa.project.cda;
+
+import dhsa.project.fhir.FhirService;
+import lombok.SneakyThrows;
+import org.apache.commons.net.util.Base64;
+import org.hl7.fhir.r4.model.*;
+import org.openhealthtools.mdht.uml.cda.ClinicalDocument;
+import org.openhealthtools.mdht.uml.cda.Encounter;
+import org.openhealthtools.mdht.uml.cda.Section;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+@Service
+public class CDAImporter {
+    private final SimpleDateFormat DATETIME_FMT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    @Autowired
+    private CDAService cdaService;
+
+    @Autowired
+    private FhirService fhirService;
+
+    public String saveCDAToFhir(String encounterId) {
+        DocumentReference doc = convert(cdaService.getClinicalDocument(encounterId));
+        fhirService.getClient().update().resource(doc).execute();
+        String base64 = doc.getContentFirstRep().getAttachment().getDataElement().getValueAsString();
+        return new String(Base64.decodeBase64(base64));
+    }
+
+    @SneakyThrows
+    private DocumentReference convert(ClinicalDocument cda) {
+        Section body = cda.getSections().get(0);
+        Encounter encounter = body.getEncounters().get(0);
+        String encounterId = encounter.getIds().get(0).getRoot();
+
+        DocumentReference document = new DocumentReference();
+        document.setId(encounterId);
+        document.setStatus(Enumerations.DocumentReferenceStatus.CURRENT);
+        document.setType(new CodeableConcept().addCoding(
+            new Coding()
+                .setSystem("http://loinc.org")
+                .setCode("34133-9")
+                .setDisplay("Summarization of episode note")
+        ));
+
+        document.setSubject(new Reference("Patient/" + cda.getPatients().get(0).getId().getRoot()));
+        document.setContext(new DocumentReference.DocumentReferenceContextComponent()
+            .setEncounter(List.of(new Reference("Encounter/" + encounterId)))
+            .setPeriod(new Period()
+                .setStartElement(new DateTimeType(encounter.getEffectiveTime().getLow().getValue()))
+                .setEndElement(new DateTimeType(encounter.getEffectiveTime().getHigh().getValue()))
+            )
+        );
+        document.setAuthor(cda.getParticipants().stream().map(author ->
+            new Reference("Practitioner/" + author.getAssociatedEntity().getIds().get(0).getRoot())
+        ).toList());
+        document.setDate(DATETIME_FMT.parse(cda.getEffectiveTime().getValue()));
+        document.setDescription("Report of Encounter " + encounterId);
+
+        document.setContent(List.of(new DocumentReference.DocumentReferenceContentComponent()
+                .setFormat(new Coding()
+                    .setSystem("http://hl7.org/fhir/R4/valueset-formatcodes.html")
+                    .setCode("urn:hl7-org:sdwg:ccda-structuredBody:2.1")
+                    .setDisplay("C-CDA Structured Body")
+                )
+                .setAttachment(new Attachment()
+                    .setContentType("application/xml")
+                    .setLanguage("en")
+                    .setData(cdaService.generateCD(encounterId).getBytes())
+                )
+            )
+        );
+
+        return document;
+    }
+}
