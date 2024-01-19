@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.PatientBridge;
+import dhsa.project.adapter.PatientAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.PatientFilter;
 import dhsa.project.view.PatientView;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 public class PatientSearcher extends BaseSearcher<PatientView, PatientFilter> {
 
     @Autowired
-    private PatientBridge bridge;
+    private PatientAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public PatientView transform(Resource res) {
-        return bridge.transform((Patient)res);
+        return adapter.transform((Patient) res);
     }
 
     public IQuery<?> search(PatientFilter pse) {
@@ -41,31 +41,31 @@ public class PatientSearcher extends BaseSearcher<PatientView, PatientFilter> {
         if (!pse.getBirthDateTo().isEmpty())
             query = query.and(Patient.BIRTHDATE.beforeOrEquals().day(pse.getBirthDateTo()));
 
-        if (pse.isDead()) {
+        if (pse.getDead().equals("yes")) {
             query = query.and(Patient.DECEASED.exactly().code("true"));
             if (!pse.getDeathDateFrom().isEmpty())
                 query = query.and(Patient.DEATH_DATE.afterOrEquals().day(pse.getDeathDateFrom()));
             if (!pse.getDeathDateTo().isEmpty())
                 query = query.and(Patient.DEATH_DATE.beforeOrEquals().day(pse.getDeathDateTo()));
-        } else {
+        } else if (pse.getDead().equals("no")) {
             query = query.and(Patient.DEATH_DATE.isMissing(true));
         }
 
         if (!pse.getSsnNumber().isEmpty())
             query = query.and(
                 Patient.IDENTIFIER.exactly()
-                    .systemAndIdentifier("http://hl7.org/fhir/sid/us-ssn", pse.getSsnNumber())
+                    .systemAndIdentifier("http://hl7.org/fhir/sid/us-ssn", pse.getSsnNumber().trim())
             );
         if (!pse.getPassport().isEmpty())
             query = query.and(
                 Patient.IDENTIFIER.exactly()
-                    .systemAndIdentifier("http://hl7.org/fhir/sid/us-ssn", pse.getPassport())
+                    .systemAndIdentifier("http://standardhealthrecord.org/fhir/StructureDefinition/passportNumber", pse.getPassport())
             );
 
         if (!pse.getDriverLicense().isEmpty())
             query = query.and(
                 Patient.IDENTIFIER.exactly()
-                    .systemAndIdentifier("http://hl7.org/fhir/sid/us-ssn", pse.getDriverLicense())
+                    .systemAndIdentifier("urn:oid:2.16.840.1.113883.4.3.25", pse.getDriverLicense())
             );
 
         return query;

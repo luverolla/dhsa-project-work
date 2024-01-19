@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.EncounterBridge;
+import dhsa.project.adapter.EncounterAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.EncounterFilter;
 import dhsa.project.view.EncounterView;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 public class EncounterSearcher extends BaseSearcher<EncounterView, EncounterFilter> {
 
     @Autowired
-    private EncounterBridge bridge;
+    private EncounterAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public EncounterView transform(Resource res) {
-        return bridge.transform((Encounter) res);
+        return adapter.transform((Encounter) res);
     }
 
     public IQuery<?> search(EncounterFilter ese) {

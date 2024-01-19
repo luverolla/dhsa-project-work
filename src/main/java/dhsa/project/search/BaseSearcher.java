@@ -7,12 +7,31 @@ import org.hl7.fhir.r4.model.Resource;
 
 import java.util.List;
 
-public abstract class BaseSearcher<V, F extends Filter> {
+/**
+ * Abstract class for searchers
+ *
+ * @param <V> the view object
+ * @param <F> the filter
+ */
+public abstract class BaseSearcher<V, F extends Filter> implements Searcher<V, F> {
 
     public abstract IQuery<?> search(F filter);
 
+    /**
+     * Transforms a generic FHIR resource into a view object
+     *
+     * @param entry the FHIR resource
+     * @return the view object
+     */
     public abstract V transform(Resource entry);
 
+    /**
+     * First perform a search query and then sort and page the results
+     *
+     * @param filter the filter containing the search parameters
+     * @param page   the page number
+     * @return the result set containing the results of the search
+     */
     public ResultSet<V> retrieve(F filter, int page) {
         IQuery<?> query = search(filter);
 

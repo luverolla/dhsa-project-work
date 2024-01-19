@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.BridgeService;
+import dhsa.project.adapter.AdapterService;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.DeviceRequestFilter;
 import dhsa.project.view.DeviceRequestView;
@@ -18,10 +18,10 @@ public class DeviceRequestSearcher extends BaseSearcher<DeviceRequestView, Devic
     private FhirService fhirService;
 
     @Autowired
-    private BridgeService bridge;
+    private AdapterService adapter;
 
     public DeviceRequestView transform(Resource res) {
-        return bridge.getView((DeviceRequest) res);
+        return adapter.getView((DeviceRequest) res);
     }
 
     public IQuery<?> search(DeviceRequestFilter drf) {
@@ -43,9 +43,6 @@ public class DeviceRequestSearcher extends BaseSearcher<DeviceRequestView, Devic
             query = query.and(DeviceRequest.EVENT_DATE.afterOrEquals().day(drf.getStartFrom()));
         if (!drf.getStartTo().isEmpty())
             query = query.and(DeviceRequest.EVENT_DATE.beforeOrEquals().day(drf.getStartTo()));
-        query = query.and(DeviceRequest.STATUS.exactly().code(
-            drf.isActive() ? "active" : "completed"
-        ));
 
         return query;
     }

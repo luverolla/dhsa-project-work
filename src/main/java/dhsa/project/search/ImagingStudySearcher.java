@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.ImagingStudyBridge;
+import dhsa.project.adapter.ImagingStudyAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.ImagingStudyFilter;
 import dhsa.project.view.ImagingStudyView;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 public class ImagingStudySearcher extends BaseSearcher<ImagingStudyView, ImagingStudyFilter> {
 
     @Autowired
-    private ImagingStudyBridge bridge;
+    private ImagingStudyAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public ImagingStudyView transform(Resource res) {
-        return bridge.transform((ImagingStudy) res);
+        return adapter.transform((ImagingStudy) res);
     }
 
     public IQuery<?> search(ImagingStudyFilter ise) {

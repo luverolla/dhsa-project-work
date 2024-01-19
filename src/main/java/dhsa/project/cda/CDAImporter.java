@@ -1,5 +1,6 @@
 package dhsa.project.cda;
 
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import dhsa.project.fhir.FhirService;
 import lombok.SneakyThrows;
 import org.apache.commons.net.util.Base64;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+/**
+ * Class responsible for creating C-CDA document from encounter and importing them as FHIR DocumentReference resource.
+ */
 @Service
 public class CDAImporter {
     private final SimpleDateFormat DATETIME_FMT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -23,13 +27,27 @@ public class CDAImporter {
     @Autowired
     private FhirService fhirService;
 
-    public String saveCDAToFhir(String encounterId) {
+    /**
+     * Creates C-CDA document from encounter and imports it as FHIR DocumentReference resource.
+     *
+     * @param encounterId encounter ID
+     * @return C-CDA document
+     * @throws ResourceNotFoundException if encounter is not found
+     */
+    public String saveCDAToFhir(String encounterId) throws ResourceNotFoundException {
         DocumentReference doc = convert(cdaService.getClinicalDocument(encounterId));
         fhirService.getClient().update().resource(doc).execute();
         String base64 = doc.getContentFirstRep().getAttachment().getDataElement().getValueAsString();
         return new String(Base64.decodeBase64(base64));
     }
 
+    /**
+     * Converts ClinicalDocument to DocumentReference.
+     * Takes, as input, a ClinicalDocument object produced by the MDHT library and converts it to a FHIR DocumentReference
+     *
+     * @param cda ClinicalDocument object
+     * @return DocumentReference object
+     */
     @SneakyThrows
     private DocumentReference convert(ClinicalDocument cda) {
         Section body = cda.getSections().get(0);

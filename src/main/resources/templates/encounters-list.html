@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Encounters</title>
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1 th:if="${referral.equals('patient')}"
+        th:text="|${patient.getSurname()} ${patient.getName()} - encounters|">
+        </h1>
+        <h1 th:if="${referral.equals('practitioner')}"
+        th:text="|${practitioner.getName()} - encounters|">
+        </h1>
+        <h1 th:if="${referral.equals('organization')}"
+            th:text="|${organization.getName()} - encounters|">
+        </h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol th:if="${referral.equals('patient')}" class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/home}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patients}">Patients</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patients/__${id}__}"
+                       th:text="|${patient.getSurname()} ${patient.getName()} (${patient.getSsnNumber()})|"></a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Encounters
+                </li>
+            </ol>
+            <ol th:if="${referral.equals('practitioner')}" class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/home}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/practitioners}">Practitioners</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/practitioner/__${id}__}"
+                       th:text="${practitioner.getName()}"></a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Encounters
+                </li>
+            </ol>
+            <ol th:if="${referral.equals('organization')}" class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/home}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/organizations}">organizations</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/organization/__${id}__}"
+                       th:text="${organization.getName()}"></a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Encounters
+                </li>
+            </ol>
+        </nav>
+
+        <div class="col col-12 mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Search
+                    </h5>
+                    <form th:action="|@{${'/web/' + referral + '/' + id + '/encounters'}}|"
+                          th:object="${encounterSearch}">
+                        <div class="row mb-2">
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="type">
+                                    Type (SNOMED code)
+                                </label>
+                                <input class="form-control form-control-sm" id="type" placeholder="Enter surname"
+                                       th:field="*{type}" type="text"/>
+                            </div>
+                            <div class="form-group col col-12 col-md-3">
+                                <label class="small" for="reason">
+                                    Reason (SNOMED code)
+                                </label>
+                                <input
+                                        class="form-control form-control-sm"
+                                        id="reason"
+                                        placeholder="Enter SNOMED code" th:field="*{reason}"
+                                        type="text"/>
+                            </div>
+                            <div
+                                    aria-describedby="birthDateLabel"
+                                    class="form-group col col-12 col-md-4"
+                                    id="birthDateRange">
+                                <label
+                                        class="small"
+                                        id="birthDateLabel">
+                                    Date
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <label
+                                            class="input-group-text"
+                                            for="birthDateFrom">
+                                        From
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm" id="birthDateFrom"
+                                            th:field="*{dateFrom}"
+                                            type="date"/>
+                                    <label
+                                            class="input-group-text"
+                                            for="birthDateTo">
+                                        To
+                                    </label>
+                                    <input
+                                            class="form-control form-control-sm"
+                                            id="birthDateTo" th:field="*{dateTo}"
+                                            type="date"/>
+                                </div>
+                            </div>
+                            <!-- /form-group -->
+                        </div>
+                        <!-- /form-row -->
+                        <h5
+                                class="card-title mt-4"
+                                style="font-weight: 600">
+                            Sort
+                        </h5>
+                        <div class="row">
+                            <div class="form-group col col-12 col-md-2">
+                                <label class="small" for="perPage">
+                                    Elements per page
+                                </label>
+                                <select
+                                        class="form-select form-select-sm" id="perPage"
+                                        th:field="*{perPage}">
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                    <option value="25">25</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="form-group col col-12 col-md-6">
+                                <label class="small" id="sortLabel">
+                                    Sort
+                                </label>
+                                <div class="d-flex align-items-end">
+                                    <div
+                                            class="w-100 me-1"
+                                            data-sort-items>
+                                        <div
+
+                                                aria-describedby="sortLabel"
+                                                class="input-group input-group-sm">
+                                            <label
+                                                    class="input-group-text"
+                                                    for="sortField">
+                                                by field
+                                            </label>
+                                            <select
+                                                    class="form-select form-select-sm"
+                                                    id="sortField"
+                                                    th:field="*{sort.sortField}">
+                                                <option value="date">
+                                                    Date
+                                                </option>
+                                                <option value="practitioner">
+                                                    Practitioner
+                                                </option>
+                                                <option
+                                                        value="type">
+                                                    Type
+                                                </option>
+                                                <option
+                                                        value="reason-code">
+                                                    Reason
+                                                </option>
+                                                <option value="service-provider">
+                                                    Organization
+                                                </option>
+                                            </select>
+                                            <label
+                                                    class="input-group-text"
+                                                    for="sortOrder">
+                                                order
+                                            </label>
+                                            <select
+                                                    class="form-select form-select-sm"
+                                                    id="sortOrder"
+                                                    th:field="*{sort.sortOrder}">
+                                                <option
+                                                        value="">
+                                                    None
+                                                </option>
+                                                <option value="asc">
+                                                    Ascending
+                                                </option>
+                                                <option value="desc">
+                                                    Descending
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <!-- /input-group -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /form-group -->
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col col-12 col-md-auto">
+                                <button class="btn btn-sm btn-primary" type="submit">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /form-row -->
+                    </form>
+                </div>
+                <!-- /card-body -->
+            </div>
+            <!-- /card -->
+        </div>
+        <!-- /col -->
+
+        <div class="col col-12 mt-4">
+            <div class="card overflow-x-auto">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Datetime</th>
+                                <th th:if="${!referral.equals('patient')}" scope="col">Patient</th>
+                                <th th:if="${!referral.equals('practitioner')}" scope="col">Practitioner</th>
+                                <th th:if="${!referral.equals('organization')}" scope="col">Organization</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Reason</th>
+                                <th scope="col">&nbsp;</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${encounters.isEmpty()}">
+                                <td colspan="7">No encounters</td>
+                            </tr>
+                            <tr th:each="encounter, iter : ${encounters.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${encounter.getDatetime()}"></td>
+                                <td th:if="${!referral.equals('patient')}">
+                                    <a class="internal" th:href="${encounter.getPatient().getUri()}"
+                                       th:text="${encounter.getPatient().getDisplay()}"></a>
+                                </td>
+                                <td th:if="${!referral.equals('practitioner')}">
+                                    <a class="internal" th:href="${encounter.getPractitioner().getUri()}"
+                                       th:text="${encounter.getPractitioner().getDisplay()}"></a>
+                                </td>
+                                <td th:if="${!referral.equals('organization')}">
+                                    <a class="internal" th:href="${encounter.getOrganization().getUri()}"
+                                       th:text="${encounter.getOrganization().getDisplay()}"></a>
+                                </td>
+                                <td>
+                                    <a class="external" th:href="${encounter.getType().getUri()}"
+                                       th:text="${encounter.getType().getDisplay()}"></a>
+                                </td>
+                                <td>
+                                    <a class="external" th:href="${encounter.getReason().getUri()}"
+                                       th:if="${!encounter.getReason().getUri().isEmpty()}"
+                                       th:text="${encounter.getReason().getDisplay()}"></a>
+                                    <th:block th:if="${encounter.getReason().getUri().isEmpty()}"
+                                              th:text="${encounter.getReason().getDisplay()}"></th:block>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       th:href="@{/web/encounter/__${encounter.getId()}__}" title="View details">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item" th:if="${encounters.hasPrev()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/' + ${referral} + '/' + ${id} + '/encounters/' + ${page - 1} + '?' + ${paramString}}">&lt;</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#" th:text="${page}">&lt;</a>
+                            </li>
+                            <li class="page-item" th:if="${encounters.hasNext()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/' + ${referral} + '/' + ${id} + '/encounters/' + ${page + 1} + '?' + ${paramString}}">&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+
+</body>
+</html>

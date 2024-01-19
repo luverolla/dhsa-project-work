@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.PractitionerBridge;
+import dhsa.project.adapter.PractitionerAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.PractitionerFilter;
 import dhsa.project.view.PractitionerView;
@@ -17,10 +17,10 @@ public class PractitionerSearcher extends BaseSearcher<PractitionerView, Practit
     private FhirService fhirService;
 
     @Autowired
-    private PractitionerBridge bridge;
+    private PractitionerAdapter adapter;
 
     public PractitionerView transform(Resource res) {
-        return bridge.transform((Practitioner) res);
+        return adapter.transform((Practitioner) res);
     }
 
     public IQuery<?> search(PractitionerFilter pse) {

@@ -1,8 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.ImmunizationBridge;
-import dhsa.project.view.ViewService;
+import dhsa.project.adapter.ImmunizationAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.ImmunizationFilter;
 import dhsa.project.view.ImmunizationView;
@@ -18,10 +17,10 @@ public class ImmunizationSearcher extends BaseSearcher<ImmunizationView, Immuniz
     private FhirService fhirService;
 
     @Autowired
-    private ImmunizationBridge bridge;
+    private ImmunizationAdapter adapter;
 
     public ImmunizationView transform(Resource res) {
-        return bridge.transform((Immunization) res);
+        return adapter.transform((Immunization) res);
     }
 
     public IQuery<?> search(ImmunizationFilter searchElement) {

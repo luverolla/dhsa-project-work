@@ -1,8 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.ProcedureBridge;
-import dhsa.project.view.ViewService;
+import dhsa.project.adapter.ProcedureAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.ProcedureFilter;
 import dhsa.project.view.ProcedureView;
@@ -15,13 +14,13 @@ import org.springframework.stereotype.Service;
 public class ProcedureSearcher extends BaseSearcher<ProcedureView, ProcedureFilter> {
 
     @Autowired
-    private ProcedureBridge bridge;
+    private ProcedureAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public ProcedureView transform(Resource res) {
-        return bridge.transform((Procedure) res);
+        return adapter.transform((Procedure) res);
     }
 
     public IQuery<?> search(ProcedureFilter pse) {

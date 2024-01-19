@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.PrescriptionBridge;
+import dhsa.project.adapter.PrescriptionAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.PrescriptionFilter;
 import dhsa.project.view.PrescriptionView;
@@ -16,10 +16,10 @@ public class PrescriptionSearcher extends BaseSearcher<PrescriptionView, Prescri
     @Autowired
     private FhirService fhirService;
     @Autowired
-    private PrescriptionBridge bridge;
+    private PrescriptionAdapter adapter;
 
     public PrescriptionView transform(Resource res) {
-        return bridge.transform((MedicationRequest) res);
+        return adapter.transform((MedicationRequest) res);
     }
 
     public IQuery<?> search(PrescriptionFilter pse) {
@@ -38,10 +38,10 @@ public class PrescriptionSearcher extends BaseSearcher<PrescriptionView, Prescri
         if (!pse.getStartDateTo().isEmpty())
             query = query.where(MedicationRequest.DATE.beforeOrEquals().day(pse.getStartDateTo()));
 
-        if (pse.isActive())
-            query = query.where(MedicationRequest.STATUS.exactly().code("active"));
-        else
+        if (pse.getActive().equals("no"))
             query = query.where(MedicationRequest.STATUS.exactly().code("completed"));
+        else if (pse.getActive().equals("yes"))
+            query = query.where(MedicationRequest.STATUS.exactly().code("active"));
 
         return query;
     }

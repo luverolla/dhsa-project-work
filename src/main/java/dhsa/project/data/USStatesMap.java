@@ -2,6 +2,9 @@ package dhsa.project.data;
 
 import java.util.HashMap;
 
+/**
+ * Map of US states and their abbreviations.
+ */
 public final class USStatesMap extends HashMap<String, String> {
     private final static USStatesMap instance = new USStatesMap();
 

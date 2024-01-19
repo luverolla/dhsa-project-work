@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:if="${referral.equals('patient')}">Patient's conditions</title>
+
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+
+<main class="h-100 px-5 py-3 bg-light">
+    <div class="row">
+        <h1 th:if="${referral.equals('patient')}"
+            th:text="|${patient.getSurname()} ${patient.getName()} (${patient.getSsnNumber()}) - Condition History|">
+        </h1>
+        <h1 th:if="${referral.equals('encounter')}"
+            th:text="|Conditions for encounter ${id}|">
+
+        </h1>
+
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol th:if="${referral.equals('patient')}" class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patients}">Patients</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/patient/__${id}__}"
+                       th:text="|${patient.getSurname()} ${patient.getName()}|"></a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Condition History
+                </li>
+            </ol>
+            <ol th:if="${referral.equals('encounter')}" class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/}">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    Encounters
+                </li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/web/encounter/__${id}__}"
+                       th:text="|${id}|"></a>
+                </li>
+                <li aria-current="page" class="breadcrumb-item active">
+                    Condition History
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <div class="row mt-2">
+        <div class="col col-12 col-md-3 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" th:action="|@{${'/web/' + referral + '/' + id + '/conditions/' + page}}|"
+                          th:object="${conditionSearch}">
+                        <div class="row mt-2">
+                            <div class="form-group col col-12">
+                                <label class="small" for="code">SNOMED Code</label>
+                                <input class="form-control form-control-sm" id="code" th:field="*{code}"
+                                       type="text">
+                            </div>
+                            <div
+                                    aria-describedby="onsetLabel"
+                                    class="form-group col col-12"
+                                    id="onsetRange">
+                                <label
+                                        class="small"
+                                        id="onsetLabel">
+                                    Onset date
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <label class="input-group-text visually-hidden" for="onsetFrom">From</label>
+                                    <input
+                                            class="form-control"
+                                            id="onsetFrom"
+                                            th:field="*{onsetFrom}"
+                                            type="date"/>
+                                    <label class="input-group-text" for="onsetTo">To</label>
+                                    <input
+                                            class="form-control"
+                                            id="onsetTo"
+                                            th:field="*{onsetTo}"
+                                            type="date"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div
+                                    class="form-group col col-12 mt-2 d-flex align-items-end"
+                                    onchange="checkActiveValue()">
+                                <div class="form-check">
+                                    <input
+                                            class="form-check-input"
+                                            id="activeAll"
+                                            th:field="*{active}"
+                                            value="all"
+                                            type="radio"/>
+                                    <label
+                                            class="form-check-label small"
+                                            for="activeAll">
+                                        All
+                                    </label>
+                                </div>
+                                <div class="form-check ms-2">
+                                    <input
+                                            class="form-check-input"
+                                            id="activeYes"
+                                            th:field="*{active}"
+                                            value="yes"
+                                            type="radio"/>
+                                    <label
+                                            class="form-check-label small"
+                                            for="activeYes">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="form-check ms-2">
+                                    <input
+                                            class="form-check-input"
+                                            id="activeNo"
+                                            th:field="*{active}"
+                                            value="no"
+                                            type="radio"/>
+                                    <label
+                                            class="form-check-label small"
+                                            for="activeNo">
+                                        No
+                                    </label>
+                                </div>
+                            </div>
+                            <div aria-describedby="abatementLabel"
+                                 class="form-group col col-12"
+                                 id="abatementRange">
+                                <label
+                                        class="small"
+                                        id="abatementLabel">
+                                    Abatement date
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <label class="input-group-text visually-hidden" for="abatementFrom">From</label>
+                                    <input
+                                            class="form-control"
+                                            id="abatementFrom"
+                                            th:field="*{abatementFrom}"
+                                            type="date"/>
+                                    <label class="input-group-text" for="abatementTo">To</label>
+                                    <input
+                                            class="form-control"
+                                            id="abatementTo"
+                                            th:field="*{abatementTo}"
+                                            type="date"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <h5 class="card-title" style="font-weight: 600">
+                                Sort
+                            </h5>
+                            <div class="form-group col col-12 mt-2">
+                                <label class="small" for="perpage">Per page</label>
+                                <select class="form-select form-select-sm" id="perpage" th:field="*{perPage}">
+                                    <option value="15">15</option>
+                                    <option value="20">20</option>
+                                    <option value="25">25</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="col col-12 mt-2">
+                                <label class="small" for="sort">Sort</label>
+                                <select class="form-select form-select-sm" id="sort" th:field="*{sort.sortField}">
+                                    <option value="code">Code</option>
+                                    <option value="onset-date">Onset date</option>
+                                    <option value="abatement-date">Abatement date</option>
+                                </select>
+                            </div>
+                            <div class="col col-12 mt-2">
+                                <label class="small" for="sortDirection">Direction</label>
+                                <select class="form-select form-select-sm" id="sortDirection"
+                                        th:field="*{sort.sortOrder}">
+                                    <option value="asc">Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col col-12">
+                                <button class="btn btn-sm btn-primary w-100" type="submit">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-12 col-md-9 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Conditions
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Onset</th>
+                                <th scope="col">Abatement</th>
+                                <th scope="col">Condition</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${conditions.isEmpty()}">
+                                <td class="text-center" colspan="4">No conditions</td>
+                            </tr>
+                            <tr th:each="condition, iter : ${conditions.getEntries()}">
+                                <td th:text="${iter.count}"></td>
+                                <td th:text="${condition.getStart()}"></td>
+                                <td th:text="${condition.getStop()}"></td>
+                                <td>
+                                    <a class="external" th:href="|@{${condition.getCode().getUri()}}|"
+                                       th:text="${condition.getCode().getDisplay()}"></a>
+                                </td>
+                        </table>
+                    </div>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination pagination-sm">
+                            <li class="page-item" th:if="${conditions.hasPrev()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/' + ${referral} + '/' + id + '/conditions/' + ${page - 1} + '?' + ${paramString}}">&lt;</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#" th:text="${page}">&lt;</a>
+                            </li>
+                            <li class="page-item" th:if="${conditions.hasNext()}">
+                                <a class="page-link"
+                                   th:href="@{'/web/' + ${referral} + '/' + id + '/conditions/' + ${page + 1} + '?' + ${paramString}}">&gt;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+    </div> <!-- row -->
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+
+<script>
+    function checkActiveValue() {
+        if ($('input[name="active"]:checked').val() === 'no') {
+            $('#abatementRange').show();
+            $('#abatementRange input').prop('disabled', false);
+        } else {
+            $('#abatementRange').hide();
+            $('#abatementRange input').prop('disabled', true);
+        }
+    }
+
+    $(document).ready(function () {
+        checkActiveValue();
+        $('input[name="active"]').change(function () {
+            checkActiveValue();
+        });
+    });
+</script>
+</body>
+</html>

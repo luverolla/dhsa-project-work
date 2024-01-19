@@ -5,6 +5,9 @@ import dhsa.project.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service bean holding the <tt>retrieve()</tt> method of all types of resource.
+ */
 @Service
 public class SearchService {
 
@@ -84,6 +87,4 @@ public class SearchService {
     public ResultSet<ImagingStudyView> retrieve(ImagingStudyFilter isf, int page) {
         return img.retrieve(isf, page);
     }
-
-
 }

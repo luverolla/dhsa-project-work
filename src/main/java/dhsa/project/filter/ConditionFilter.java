@@ -12,7 +12,7 @@ public class ConditionFilter implements Filter {
     private String code = "";
     private String onsetFrom = "";
     private String onsetTo = "";
-    private boolean active = false;
+    private String active = "all";
     private String abatementFrom = "";
     private String abatementTo = "";
 

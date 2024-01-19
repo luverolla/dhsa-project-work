@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.BridgeService;
+import dhsa.project.adapter.AdapterService;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.ConditionFilter;
 import dhsa.project.view.ConditionView;
@@ -17,10 +17,10 @@ public class ConditionSearcher extends BaseSearcher<ConditionView, ConditionFilt
     private FhirService fhirService;
 
     @Autowired
-    private BridgeService bridge;
+    private AdapterService adapter;
 
     public ConditionView transform(Resource r) {
-        return bridge.getView((Condition) r);
+        return adapter.getView((Condition) r);
     }
 
     public IQuery<?> search(ConditionFilter cse) {
@@ -39,10 +39,9 @@ public class ConditionSearcher extends BaseSearcher<ConditionView, ConditionFilt
         if (!cse.getOnsetTo().isEmpty())
             query = query.where(Condition.ONSET_DATE.beforeOrEquals().day(cse.getOnsetTo()));
 
-        if (cse.isActive())
+        if (cse.getActive().equals("yes"))
             query = query.where(Condition.ABATEMENT_DATE.isMissing(true));
-        else {
-            query = query.where(Condition.ABATEMENT_DATE.isMissing(false));
+        else if (cse.getActive().equals("no")) {
             if (!cse.getAbatementFrom().isEmpty())
                 query = query.where(Condition.ABATEMENT_DATE.afterOrEquals().day(cse.getAbatementFrom()));
             if (!cse.getAbatementTo().isEmpty())

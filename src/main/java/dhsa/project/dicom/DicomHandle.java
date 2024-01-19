@@ -14,6 +14,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Object for handling DICOM files and their metadata
+ */
 public class DicomHandle {
 
     private static final Logger logger = Logger.getLogger(DicomHandle.class.getName());
@@ -30,6 +33,14 @@ public class DicomHandle {
         loadEssentialData();
     }
 
+    /**
+     * Reads a DICOM file and returns its attribute list
+     *
+     * @param filePath path to the DICOM file
+     * @return attribute list
+     * @throws IOException    if the file is not found
+     * @throws DicomException if the file is not a valid DICOM file
+     */
     private AttributeList read(String filePath) throws IOException, DicomException {
         File dicomFile = new File(filePath);
         DicomInputStream dicomInputStream;
@@ -43,6 +54,11 @@ public class DicomHandle {
         return attributeList;
     }
 
+    /**
+     * Loads essential and frequently-used data from the attribute list
+     *
+     * @throws DicomException if the attribute list is not valid
+     */
     private void loadEssentialData() throws DicomException {
         assert attrs != null;
 
@@ -62,6 +78,13 @@ public class DicomHandle {
             bytePixelData = pixelDataAttr.getByteValues();
     }
 
+    /**
+     * Returns a string representation of the attribute list in the form
+     * <pre>KEY NAME: [VR, VL] STRING_VALUE</pre>
+     * If a string representation for a value cannot provided (i.e. binary values), the value field is left blank
+     *
+     * @return string representation of the attribute list
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -83,6 +106,13 @@ public class DicomHandle {
         return sb.toString();
     }
 
+    /**
+     * Returns values for a given attribute tag as a string array
+     * If the attribute is not present, or if it is not a string attribute, returns null
+     *
+     * @param tag attribute tag
+     * @return string array of values
+     */
     public String[] getStrings(AttributeTag tag) {
         assert attrs != null;
         try {
@@ -96,6 +126,12 @@ public class DicomHandle {
         }
     }
 
+    /**
+     * Returns the first value for a given attribute tag as a string
+     *
+     * @param tag attribute tag
+     * @return string value
+     */
     public String getString(AttributeTag tag) {
         String[] strings = getStrings(tag);
         if (strings == null)
@@ -103,6 +139,13 @@ public class DicomHandle {
         return strings[0];
     }
 
+    /**
+     * Returns values for a given attribute tag as an integer array
+     * If the attribute is not present, or if it is not an integer attribute, returns null
+     *
+     * @param tag attribute tag
+     * @return integer array of values
+     */
     public int[] getInts(AttributeTag tag) {
         assert attrs != null;
         try {
@@ -113,15 +156,33 @@ public class DicomHandle {
         }
     }
 
+    /**
+     * Returns the first value for a given attribute tag as an integer
+     *
+     * @param tag attribute tag
+     * @return integer value
+     */
     public int getInt(AttributeTag tag) {
         return getInts(tag)[0];
     }
 
+    /**
+     * Tells if the attribute list contains a given attribute tag
+     *
+     * @param tag attribute tag
+     * @return true if the attribute list contains the given tag, false otherwise
+     */
     public boolean hasAttr(AttributeTag tag) {
         assert attrs != null;
         return attrs.get(tag) != null;
     }
 
+    /**
+     * Returns the frame at the given index as a DicomFrame object
+     *
+     * @param index frame index
+     * @return DicomFrame object
+     */
     private DicomFrame getFrame(int index) {
         try {
             int start, end;
@@ -147,12 +208,25 @@ public class DicomHandle {
         }
     }
 
+    /**
+     * Returns the frame at the given index as a base64-encoded string
+     *
+     * @param index frame index
+     * @return base64-encoded string
+     */
     public String serveFrame(int index) {
         DicomFrame frame = getFrame(index);
         assert frame != null;
         return frame.toBase64();
     }
 
+    /**
+     * Returns a list of base64-encoded strings for the frames in the given range
+     *
+     * @param start start index
+     * @param end   end index
+     * @return list of base64-encoded strings
+     */
     public List<String> serveFrames(int start, int end) {
         List<String> frames = new ArrayList<>();
         for (int i = start; i < end; i++) {
@@ -161,17 +235,35 @@ public class DicomHandle {
         return frames;
     }
 
+    /**
+     * Returns a list of base64-encoded strings for all the frames
+     *
+     * @return list of base64-encoded strings
+     */
     public List<String> serveAllFrames() {
         int numFrames = getInt(TagFromName.NumberOfFrames);
         return serveFrames(0, numFrames);
     }
 
+    /**
+     * Object for handling DICOM frames
+     */
     private static class DicomFrame {
         byte[] data;
 
-        public DicomFrame(int w, int h, boolean is_word, Object pxs) throws IOException {
+        /**
+         * Creates a DicomFrame object from either a byte array or a short array of PixelData
+         * The array's element size is determined by the value representation (VR) of the PixelData attribute
+         *
+         * @param w      frame width
+         * @param h      frame height
+         * @param isWord true if the frame is a word frame, false if it is a byte frame
+         * @param pxs    byte array
+         * @throws IOException if the byte array cannot be converted to a BufferedImage
+         */
+        public DicomFrame(int w, int h, boolean isWord, Object pxs) throws IOException {
 
-            if (!is_word) {
+            if (!isWord) {
                 if (!(pxs instanceof byte[] bytes))
                     throw new IllegalArgumentException("Expected byte[] for byte data, got " + pxs.getClass().getName());
 
@@ -192,6 +284,11 @@ public class DicomHandle {
             }
         }
 
+        /**
+         * Returns the frame as a base64-encoded string
+         *
+         * @return base64-encoded string
+         */
         public String toBase64() {
             return Base64.getEncoder().encodeToString(data);
         }

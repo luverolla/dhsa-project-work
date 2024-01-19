@@ -8,8 +8,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ObservationView {
+    private String id;
     private NamedReference code;
     private String encounter;
     private String datetime;
     private String value;
+    private boolean valueBinary;
 }

@@ -12,7 +12,7 @@ public class PatientFilter implements Filter {
     private String sex = "";
     private String birthDateFrom = "";
     private String birthDateTo = "";
-    private boolean dead = false;
+    private String dead = "all";
     private String deathDateFrom = "";
     private String deathDateTo = "";
     private String ssnNumber = "";

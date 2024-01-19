@@ -40,24 +40,133 @@
                                     <th scope="row">Phone</th>
                                     <td th:text="${organization.getPhone()}"></td>
                                 </tr>
-                            </table>
-                        </div>
-                        <div class="col col-12 col-md-6">
-                            <table class="table table-sm table-borderless">
                                 <tr>
                                     <th scope="row">Address</th>
-                                    <td th:text="${organization.getAddress.get(0)}"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">City and state</th>
-                                    <td th:text="${#strings.listJoin(organization.getAddress.sublist(1), ', ')}"></td>
+                                    <td th:text="${#strings.listJoin(organization.getAddress.subList(1, organization.getAddress().size()), ', ')}"></td>
                                 </tr>
                             </table>
-                        </div>
-                    </div>
+                        </div> <!-- col -->
+                    </div> <!-- row -->
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+
+        <div class="col col-12 mt-4">
+            <div class="card overflow-x-auto">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Last encounters
+                    </h5>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Datetime</th>
+                            <th scope="col">Practitioner</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${encounters.isEmpty()}">
+                            <td colspan="7">No encounters</td>
+                        </tr>
+                        <tr th:each="encounter, iter : ${encounters.getEntries()}">
+                            <td th:text="${iter.count}"></td>
+                            <td th:text="${encounter.getDatetime()}"></td>
+                            <td>
+                                <a class="internal" th:href="${encounter.getPractitioner().getUri()}"
+                                   th:text="${encounter.getPractitioner().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="${encounter.getType().getUri()}"
+                                   th:text="${encounter.getType().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="${encounter.getReason().getUri()}"
+                                   th:if="${!encounter.getReason().getUri().isEmpty()}"
+                                   th:text="${encounter.getReason().getDisplay()}"></a>
+                                <th:block th:if="${encounter.getReason().getUri().isEmpty()}"
+                                          th:text="${encounter.getReason().getDisplay()}"></th:block>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{/web/encounter/__${encounter.getId()}__}" title="View details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        <div class="col col-12 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="font-weight: 600">
+                        Last Encounters
+                    </h5>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Datetime</th>
+                            <th scope="col">Patient</th>
+                            <th scope="col">Practitioner</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">&nbsp;</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${encounters.isEmpty()}">
+                            <td colspan="7">No encounters</td>
+                        </tr>
+                        <tr th:each="encounter, iter : ${encounters.getEntries()}">
+                            <td th:text="${iter.count}"></td>
+                            <td th:text="${encounter.getDatetime()}"></td>
+                            <td>
+                                <a class="internal" th:href="${encounter.getPatient().getUri()}"
+                                   th:text="${encounter.getPatient().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="internal" th:href="${encounter.getPatient().getUri()}"
+                                   th:text="${encounter.getPatient().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="${encounter.getType().getUri()}"
+                                   th:text="${encounter.getType().getDisplay()}"></a>
+                            </td>
+                            <td>
+                                <a class="external" th:href="${encounter.getReason().getUri()}"
+                                   th:if="${!encounter.getReason().getUri().isEmpty()}"
+                                   th:text="${encounter.getReason().getDisplay()}"></a>
+                                <th:block th:if="${encounter.getReason().getUri().isEmpty()}"
+                                          th:text="${encounter.getReason().getDisplay()}"></th:block>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-primary"
+                                   th:href="@{/web/encounter/__${encounter.getId()}__}" title="View details">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="row justify-content-end">
+                        <div class="col col-12 col-md-auto mt-2">
+                            <a class="btn btn-sm btn-primary"
+                               th:href="@{/web/organization/__${id}__/encounters}">
+                                View all
+                            </a>
+                        </div> <!-- col -->
+                    </div> <!-- row -->
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
     </div> <!-- row -->
 </main>
 

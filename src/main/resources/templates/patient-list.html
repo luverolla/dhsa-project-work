@@ -131,22 +131,49 @@
                                 <div class="form-check">
                                     <input
                                             class="form-check-input"
-                                            id="dead"
+                                            id="deadAll"
                                             th:field="*{dead}"
-                                            type="checkbox"/>
+                                            value="all"
+                                            type="radio"/>
                                     <label
                                             class="form-check-label"
-                                            for="dead" th:field="*{dead}">
-                                        Deceased
+                                            for="deadAll">
+                                        All
+                                    </label>
+                                </div>
+                                <div class="form-check ms-2">
+                                    <input
+                                            class="form-check-input"
+                                            id="deadYes"
+                                            th:field="*{dead}"
+                                            value="yes"
+                                            type="radio"/>
+                                    <label
+                                            class="form-check-label"
+                                            for="deadYes">
+                                        Dead
+                                    </label>
+                                </div>
+                                <div class="form-check ms-2">
+                                    <input
+                                            class="form-check-input"
+                                            id="deadNo"
+                                            th:field="*{dead}"
+                                            value="no"
+                                            type="radio"/>
+                                    <label
+                                            class="form-check-label"
+                                            for="deadNo">
+                                        Alive
                                     </label>
                                 </div>
                             </div>
                             <div
-                                    class="form-group col col-12 col-md-4 d-none"
+                                    class="form-group col col-12 col-md-4"
                                     id="deadDateRange">
                                 <label class="small">Death date</label>
                                 <div class="input-group input-group-sm">
-                                    <label class="input-group-text" for="deathDateFrom" th:field="*{deathDateFrom}">
+                                    <label class="input-group-text" for="deathDateFrom">
                                         From
                                     </label>
                                     <input
@@ -154,7 +181,7 @@
                                             placeholder="Enter birthdate"
                                             th:field="*{deathDateFrom}"
                                             type="date"/>
-                                    <label class="input-group-text" for="deathDateTo" th:field="*{deathDateTo}">
+                                    <label class="input-group-text" for="deathDateTo">
                                         To
                                     </label>
                                     <input
@@ -349,11 +376,11 @@
 
 <script>
     function checkDeadValue() {
-        if ($('#dead').is(':checked')) {
-            $('#deadDateRange').removeClass('d-none');
+        if ($('input[name="dead"]:checked').val() === 'yes') {
+            $('#deadDateRange').show()
             $('#deadDateRange input').prop('disabled', false);
         } else {
-            $('#deadDateRange').addClass('d-none');
+            $('#deadDateRange').hide();
             $('#deadDateRange input').prop('disabled', true);
         }
     }
@@ -361,7 +388,7 @@
     $(document).ready(function () {
         checkDeadValue();
 
-        $('#dead').change(function () {
+        $('input[name="dead"]').change(function () {
             checkDeadValue();
         });
     })

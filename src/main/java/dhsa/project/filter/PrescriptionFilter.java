@@ -13,9 +13,7 @@ public class PrescriptionFilter implements Filter {
     private String reason = "";
     private String startDateFrom = "";
     private String startDateTo = "";
-    private boolean active = false;
-    private String endDateFrom = "";
-    private String endDateTo = "";
+    private String active = "all";
 
     private int perPage = 15;
     private SortElement sort = new SortElement("date", "desc");

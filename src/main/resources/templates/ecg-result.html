@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>ECG Chart</title>
+
+    <th:block th:insert="~{includes/skeleton :: head}"></th:block>
+</head>
+<body>
+
+<main class="h-100 p-0 bg-light">
+    <canvas id="chart"></canvas>
+</main>
+
+<th:block th:insert="~{includes/skeleton :: scripts}"></th:block>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    var data = /*[[${data}]]*/ [];
+    console.log(data);
+
+    const ctx = document.getElementById('chart');
+
+    var labels = []
+    for (let i = 0; i < data.length; i++)
+        labels.push(i);
+
+    const dataStruct = {
+        labels: labels,
+        datasets: [{
+            label: '',
+            data: data,
+            fill: false,
+            borderWidth: 1,
+            borderColor: 'red',
+            pointBorderWidth: 0,
+            showLine: true,
+            tension: 0.5,
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'scatter',
+        data: dataStruct,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                },
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+                display: false
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        stepSize: 50
+                    }
+                },
+            }
+        },
+
+    });
+
+    /*]]>*/
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@ package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.ObservationBridge;
+import dhsa.project.adapter.ObservationAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.ObservationFilter;
 import dhsa.project.view.ObservationView;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class ObservationSearcher extends BaseSearcher<ObservationView, ObservationFilter> {
     @Autowired
-    private ObservationBridge bridge;
+    private ObservationAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public ObservationView transform(Resource res) {
-        return bridge.transform((Observation) res);
+        return adapter.transform((Observation) res);
     }
 
     public IQuery<?> search(ObservationFilter ose) {

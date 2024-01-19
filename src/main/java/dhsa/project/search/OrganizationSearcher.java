@@ -1,7 +1,7 @@
 package dhsa.project.search;
 
 import ca.uhn.fhir.rest.gclient.IQuery;
-import dhsa.project.bridge.OrganizationBridge;
+import dhsa.project.adapter.OrganizationAdapter;
 import dhsa.project.fhir.FhirService;
 import dhsa.project.filter.OrganizationFilter;
 import dhsa.project.view.OrganizationView;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 public class OrganizationSearcher extends BaseSearcher<OrganizationView, OrganizationFilter> {
 
     @Autowired
-    private OrganizationBridge bridge;
+    private OrganizationAdapter adapter;
 
     @Autowired
     private FhirService fhirService;
 
     public OrganizationView transform(Resource res) {
-        return bridge.transform((Organization) res);
+        return adapter.transform((Organization) res);
     }
 
     public IQuery<?> search(OrganizationFilter ose) {
