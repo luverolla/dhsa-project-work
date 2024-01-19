@@ -8,7 +8,7 @@ import lombok.Setter;
 public class OrganizationFilter implements Filter {
 
     private String name = "";
-    private int perPage = 15;
+    private int perPage = 5;
     private String state = "";
     private String city = "";
     private String zip = "";

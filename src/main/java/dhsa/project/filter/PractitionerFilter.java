@@ -12,6 +12,6 @@ public class PractitionerFilter implements Filter {
     private String speciality = "";
     private String sex = "";
     private List<String> organizations = List.of();
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("name", "asc");
 }

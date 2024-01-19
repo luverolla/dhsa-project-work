@@ -15,6 +15,18 @@ public class ObservationAdapter implements ResourceAdapter<Observation, Observat
     @Autowired
     private ViewService viewService;
 
+    /**
+     * Transform FHIR Observation to an ObservationView object
+     * A particular case is the electrocardiograph procedure, which is present twice in the database for each entry:
+     * <ul>
+     * <li>one entry with the graph data on y-axis, represented as a string with space-separated values</li>
+     * <li>one entry with the image encoded in Base64</li>
+     * For rendering we used GraphJS engine on the data string, therefore the copy with encoded image is discarded
+     * </ul>
+     *
+     * @param obs FHIR Observation resource
+     * @return ObservationView object
+     */
     public ObservationView transform(Observation obs) {
         boolean isBinary = false;
         String value = switch (obs.getValue().fhirType()) {
@@ -28,7 +40,7 @@ public class ObservationAdapter implements ResourceAdapter<Observation, Observat
                 String stringValue = ((StringType) obs.getValue()).getValue();
                 if (obs.getCode().getCodingFirstRep().getSystem().equals("http://snomed.info/sct")) {
                     isBinary = true;
-                    // electrocardiographic procedure
+                    // electrocardiograph procedure
                     if (!stringValue.contains(" "))
                         // graph data, discard, we will use the images
                         yield "__DISCARD__";

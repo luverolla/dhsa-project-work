@@ -17,6 +17,6 @@ public class DeviceRequestFilter implements Filter {
     private String stopFrom = "";
     private String stopTo = "";
 
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("event-date", "desc");
 }

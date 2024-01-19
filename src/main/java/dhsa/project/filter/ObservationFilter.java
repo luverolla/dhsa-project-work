@@ -16,6 +16,6 @@ public class ObservationFilter implements Filter {
     private Float valueFrom = null;
     private Float valueTo = null;
 
-    private int perPage;
+    private int perPage = 5;
     private SortElement sort = new SortElement("date", "desc");
 }

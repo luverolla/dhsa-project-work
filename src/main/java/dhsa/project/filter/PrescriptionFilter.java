@@ -15,6 +15,6 @@ public class PrescriptionFilter implements Filter {
     private String startDateTo = "";
     private String active = "all";
 
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("date", "desc");
 }

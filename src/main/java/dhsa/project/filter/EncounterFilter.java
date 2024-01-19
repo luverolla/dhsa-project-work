@@ -15,6 +15,6 @@ public class EncounterFilter implements Filter {
     private String type = "";
     private String reason = "";
 
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("date", "desc");
 }

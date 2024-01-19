@@ -18,7 +18,7 @@
         </h1>
 
         <nav aria-label="breadcrumb" class="mt-3">
-            <ol th:if="${referral.equals('patient')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('patient')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/}">Dashboard</a>
                 </li>
@@ -33,7 +33,7 @@
                     Condition History
                 </li>
             </ol>
-            <ol th:if="${referral.equals('encounter')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('encounter')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/}">Dashboard</a>
                 </li>
@@ -96,8 +96,8 @@
                                             class="form-check-input"
                                             id="activeAll"
                                             th:field="*{active}"
-                                            value="all"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="all"/>
                                     <label
                                             class="form-check-label small"
                                             for="activeAll">
@@ -109,12 +109,12 @@
                                             class="form-check-input"
                                             id="activeYes"
                                             th:field="*{active}"
-                                            value="yes"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="yes"/>
                                     <label
                                             class="form-check-label small"
                                             for="activeYes">
-                                        Yes
+                                        Terminate
                                     </label>
                                 </div>
                                 <div class="form-check ms-2">
@@ -122,12 +122,12 @@
                                             class="form-check-input"
                                             id="activeNo"
                                             th:field="*{active}"
-                                            value="no"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="no"/>
                                     <label
                                             class="form-check-label small"
                                             for="activeNo">
-                                        No
+                                        Ongoing
                                     </label>
                                 </div>
                             </div>
@@ -162,10 +162,8 @@
                             <div class="form-group col col-12 mt-2">
                                 <label class="small" for="perpage">Per page</label>
                                 <select class="form-select form-select-sm" id="perpage" th:field="*{perPage}">
-                                    <option value="15">15</option>
-                                    <option value="20">20</option>
-                                    <option value="25">25</option>
-                                    <option value="30">30</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
                                 </select>
                             </div>
                             <div class="col col-12 mt-2">

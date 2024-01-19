@@ -17,7 +17,7 @@
         </h1>
 
         <nav aria-label="breadcrumb" class="mt-3">
-            <ol th:if="${referral.equals('patient')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('patient')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/}">Dashboard</a>
                 </li>
@@ -32,7 +32,7 @@
                     Observation history
                 </li>
             </ol>
-            <ol th:if="${referral.equals('encounter')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('encounter')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/}">Dashboard</a>
                 </li>
@@ -50,7 +50,7 @@
         </nav>
     </div>
     <div class="row mt-2">
-        <div class="col col-12 col-md-3 mt-2">
+        <div class="col col-12 col-md-3 mt-3">
             <div class="card">
                 <div class="card-body">
                     <form method="get"
@@ -123,10 +123,8 @@
                             <div class="form-group col col-12 mt-2">
                                 <label class="small" for="perpage">Per page</label>
                                 <select class="form-select form-select-sm" id="perpage" th:field="*{perPage}">
-                                    <option value="15">15</option>
-                                    <option value="20">20</option>
-                                    <option value="25">25</option>
-                                    <option value="30">30</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
                                 </select>
                             </div>
                             <div class="col col-12 mt-2">
@@ -157,7 +155,7 @@
             </div>
         </div>
 
-        <div class="col col-12 col-md-9 mt-2">
+        <div class="col col-12 col-md-9 mt-3">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title mb-3" style="font-weight: 600">
@@ -178,7 +176,7 @@
                                 <td class="text-center" colspan="4">No observations</td>
                             </tr>
                             <tr th:each="observation, iter : ${observations.getEntries()}"
-                            th:if="${observation != null}">
+                                th:if="${observation != null}">
                                 <td th:text="${iter.count}"></td>
                                 <td th:text="${observation.getDatetime()}"></td>
                                 <td>
@@ -190,9 +188,9 @@
                                               th:text="${observation.getValue()}"></th:block>
 
                                     <!-- link to base64 image in new tab -->
-                                    <a class="external" th:if="${observation.isValueBinary()}"
+                                    <a class="external" target="_blank"
                                        th:href="@{/web/ecg/__${observation.getId()}__}"
-                                           target="_blank">View image</a>
+                                       th:if="${observation.isValueBinary()}">View image</a>
                                 </td>
                             </tr>
                         </table>

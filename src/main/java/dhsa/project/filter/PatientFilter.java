@@ -18,7 +18,7 @@ public class PatientFilter implements Filter {
     private String ssnNumber = "";
     private String passport = "";
     private String driverLicense = "";
-    private int perPage = 15;
+    private int perPage = 5;
 
     private SortElement sort = new SortElement("family", "asc");
 }

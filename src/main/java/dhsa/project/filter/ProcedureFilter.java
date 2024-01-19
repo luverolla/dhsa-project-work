@@ -14,6 +14,6 @@ public class ProcedureFilter implements Filter {
     private String dateFrom = "";
     private String dateTo = "";
 
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("date", "desc");
 }

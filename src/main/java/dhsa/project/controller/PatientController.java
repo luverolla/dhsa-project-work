@@ -87,6 +87,7 @@ public class PatientController {
             model.addAttribute("encounterSearch", ese);
             model.addAttribute("patientId", id);
             model.addAttribute("patient", pm);
+            model.addAttribute("referral", "patient");
             model.addAttribute("encounters", commons.searchService.retrieve(ese, page));
             model.addAttribute("page", page);
             return "encounters-list";

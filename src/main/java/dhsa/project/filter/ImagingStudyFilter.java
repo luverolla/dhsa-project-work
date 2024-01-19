@@ -15,6 +15,6 @@ public class ImagingStudyFilter implements Filter {
     private String dateFrom = "";
     private String dateTo = "";
 
-    private int perPage;
+    private int perPage = 5;
     private SortElement sort = new SortElement("started", "desc");
 }

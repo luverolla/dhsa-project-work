@@ -8,17 +8,17 @@
 <main class="h-100 px-5 py-3 bg-light">
     <div class="row">
         <h1 th:if="${referral.equals('patient')}"
-        th:text="|${patient.getSurname()} ${patient.getName()} - encounters|">
+            th:text="|${patient.getSurname()} ${patient.getName()} - encounters|">
         </h1>
         <h1 th:if="${referral.equals('practitioner')}"
-        th:text="|${practitioner.getName()} - encounters|">
+            th:text="|${practitioner.getName()} - encounters|">
         </h1>
         <h1 th:if="${referral.equals('organization')}"
             th:text="|${organization.getName()} - encounters|">
         </h1>
 
         <nav aria-label="breadcrumb" class="mt-3">
-            <ol th:if="${referral.equals('patient')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('patient')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/home}">Dashboard</a>
                 </li>
@@ -33,7 +33,7 @@
                     Encounters
                 </li>
             </ol>
-            <ol th:if="${referral.equals('practitioner')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('practitioner')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/home}">Dashboard</a>
                 </li>
@@ -48,7 +48,7 @@
                     Encounters
                 </li>
             </ol>
-            <ol th:if="${referral.equals('organization')}" class="breadcrumb">
+            <ol class="breadcrumb" th:if="${referral.equals('organization')}">
                 <li class="breadcrumb-item">
                     <a th:href="@{/web/home}">Dashboard</a>
                 </li>
@@ -137,10 +137,8 @@
                                 <select
                                         class="form-select form-select-sm" id="perPage"
                                         th:field="*{perPage}">
-                                    <option value="15">15</option>
-                                    <option value="20">20</option>
-                                    <option value="25">25</option>
-                                    <option value="30">30</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
                                 </select>
                             </div>
                             <div class="form-group col col-12 col-md-6">
@@ -234,9 +232,9 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Datetime</th>
-                                <th th:if="${!referral.equals('patient')}" scope="col">Patient</th>
-                                <th th:if="${!referral.equals('practitioner')}" scope="col">Practitioner</th>
-                                <th th:if="${!referral.equals('organization')}" scope="col">Organization</th>
+                                <th scope="col" th:if="${!referral.equals('patient')}">Patient</th>
+                                <th scope="col" th:if="${!referral.equals('practitioner')}">Practitioner</th>
+                                <th scope="col" th:if="${!referral.equals('organization')}">Organization</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Reason</th>
                                 <th scope="col">&nbsp;</th>

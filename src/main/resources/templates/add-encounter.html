@@ -26,42 +26,42 @@
         <div class="col col-12 mt-4">
             <div class="card">
                 <div class="card-body">
-                    <form th:action="@{/web/add-encounter}" th:object="${encounter}" method="post">
+                    <form method="post" th:action="@{/web/add-encounter}" th:object="${encounter}">
                         <div class="row mb-2">
                             <div class="form-group col col-12 col-md-3">
                                 <label class="small" for="id">
                                     ID
                                 </label>
                                 <input class="form-control form-control-sm" id="id"
-                                       th:field="*{id}" type="text" required />
+                                       required th:field="*{id}" type="text"/>
                             </div>
                             <div class="form-group col col-12 col-md-3">
                                 <label class="small" for="type">
                                     Type (SNOMED code)
                                 </label>
                                 <input class="form-control form-control-sm" id="type"
-                                       th:field="*{type.uri}" type="text" required />
+                                       required th:field="*{type.uri}" type="text"/>
                             </div>
                             <div class="form-group col col-12 col-md-3">
                                 <label class="small" for="patient">
                                     Patient (SSN number)
                                 </label>
                                 <input class="form-control form-control-sm" id="patient"
-                                       th:field="*{patient.uri}" type="text" required />
+                                       required th:field="*{patient.uri}" type="text"/>
                             </div>
                             <div class="form-group col col-12 col-md-4">
                                 <label class="small" for="practitioner">
                                     Practitioner (ID)
                                 </label>
                                 <input class="form-control form-control-sm" id="practitioner"
-                                       th:field="*{practitioner.uri}" type="text" required />
+                                       required th:field="*{practitioner.uri}" type="text"/>
                             </div>
                             <div class="form-group col col-12 col-md-4">
                                 <label class="small" for="organization">
                                     Organization (ID)
                                 </label>
                                 <input class="form-control form-control-sm" id="organization"
-                                       th:field="*{organization.uri}" type="text" required />
+                                       required th:field="*{organization.uri}" type="text"/>
                             </div>
                             <div class="form-group col col-12 col-md-3">
                                 <label class="small" for="reason">
@@ -75,7 +75,7 @@
                             </div>
                             <div class="form-group col col-12 col-md-3">
                                 <label for="datetime">Datetime</label>
-                                <input type="datetime-local" id="datetime" th:field="*{datetime}" />
+                                <input id="datetime" th:field="*{datetime}" type="datetime-local"/>
                             </div>
                             <!-- /form-group -->
                         </div>

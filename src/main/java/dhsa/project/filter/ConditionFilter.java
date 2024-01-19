@@ -16,6 +16,6 @@ public class ConditionFilter implements Filter {
     private String abatementFrom = "";
     private String abatementTo = "";
 
-    private int perPage;
+    private int perPage = 5;
     private SortElement sort = new SortElement("onset-date", "desc");
 }

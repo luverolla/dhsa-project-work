@@ -133,8 +133,8 @@
                                             class="form-check-input"
                                             id="deadAll"
                                             th:field="*{dead}"
-                                            value="all"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="all"/>
                                     <label
                                             class="form-check-label"
                                             for="deadAll">
@@ -146,8 +146,8 @@
                                             class="form-check-input"
                                             id="deadYes"
                                             th:field="*{dead}"
-                                            value="yes"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="yes"/>
                                     <label
                                             class="form-check-label"
                                             for="deadYes">
@@ -159,8 +159,8 @@
                                             class="form-check-input"
                                             id="deadNo"
                                             th:field="*{dead}"
-                                            value="no"
-                                            type="radio"/>
+                                            type="radio"
+                                            value="no"/>
                                     <label
                                             class="form-check-label"
                                             for="deadNo">
@@ -207,10 +207,8 @@
                                 <select
                                         class="form-select form-select-sm" id="perPage"
                                         th:field="*{perPage}">
-                                    <option value="15">15</option>
-                                    <option value="20">20</option>
-                                    <option value="25">25</option>
-                                    <option value="30">30</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
                                 </select>
                             </div>
                             <div class="form-group col col-12 col-md-6">
@@ -347,6 +345,41 @@
                                         title="Devices used">
                                     <i
                                             class="fas fa-tachograph-digital"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/procedures}"
+                                        title="Procedure history">
+                                    <i
+                                            class="fas fa-hand-holding-medical"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/immunizations}"
+                                        title="Immunization history">
+                                    <i
+                                            class="fas fa-syringe"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/prescriptions}"
+                                        title="Prescription history">
+                                    <i
+                                            class="fas fa-vial"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/conditions}"
+                                        title="Condition history">
+                                    <i
+                                            class="fas fa-suitcase-medical"></i>
+                                </a>
+                                <a
+                                        class="btn btn-sm btn-outline-success"
+                                        th:href="@{/web/patient/__${patient.getId()}__/observations}"
+                                        title="Observation history">
+                                    <i
+                                            class="fas fa-comment-medical"></i>
                                 </a>
                             </td>
                         </tr>

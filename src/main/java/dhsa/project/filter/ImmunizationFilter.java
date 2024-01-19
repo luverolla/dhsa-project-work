@@ -13,6 +13,6 @@ public class ImmunizationFilter implements Filter {
     private String dateTo = "";
     private String vaccine = "";
 
-    private int perPage = 15;
+    private int perPage = 5;
     private SortElement sort = new SortElement("date", "desc");
 }
